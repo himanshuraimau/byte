@@ -2,7 +2,6 @@
  * Services barrel exports
  */
 
-// Services will be exported here as they are created
-// Example:
-// export { TimelineService } from './TimelineService';
-// export { TimerService } from './TimerService';
+export { TimelineService } from './TimelineService';
+export { DateService } from './DateService';
+// TimerService will be added in Phase 7

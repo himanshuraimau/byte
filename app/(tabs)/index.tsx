@@ -1,3 +1,4 @@
+import { NoteModal } from '@/components/modals/NoteModal';
 import { TaskModal } from '@/components/modals/TaskModal';
 import { AddActionBar } from '@/components/timeline/AddActionBar';
 import { DateHeader } from '@/components/timeline/DateHeader';
@@ -10,8 +11,9 @@ import { ThemedView } from '@/components/ui/themed-view';
 import { Colors, Spacing } from '@/constants/theme';
 import { useDate } from '@/context/DateContext';
 import { useTimeline } from '@/context/TimelineContext';
+import { useNote } from '@/hooks/useNote';
 import { useTask } from '@/hooks/useTask';
-import { Task } from '@/types/entities';
+import { Note, Task } from '@/types/entities';
 import React, { useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
 
@@ -19,8 +21,11 @@ export default function TimelineScreen() {
   const { selectedDate, temporalMode, setTemporalMode } = useDate();
   const { entries, loading, entriesCount, refreshTimeline } = useTimeline();
   const { createTask, updateTask, deleteTask, toggleTaskComplete } = useTask();
+  const { createNote, updateNote, deleteNote } = useNote();
   const [taskModalVisible, setTaskModalVisible] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [noteModalVisible, setNoteModalVisible] = useState(false);
+  const [editingNote, setEditingNote] = useState<Note | null>(null);
 
   const handleAddTask = () => {
     setEditingTask(null);
@@ -28,8 +33,8 @@ export default function TimelineScreen() {
   };
 
   const handleAddNote = () => {
-    // TODO: Open note modal in Phase 6
-    console.log('Add note');
+    setEditingNote(null);
+    setNoteModalVisible(true);
   };
 
   const handleAddSession = () => {
@@ -64,9 +69,23 @@ export default function TimelineScreen() {
     }
   };
 
-  const handleNotePress = (noteId: number) => {
-    // TODO: Open note edit modal in Phase 6
-    console.log('Edit note', noteId);
+  const handleNotePress = (note: Note) => {
+    setEditingNote(note);
+    setNoteModalVisible(true);
+  };
+
+  const handleNoteSave = async (content: string) => {
+    if (editingNote) {
+      await updateNote(editingNote.id, content);
+    } else {
+      await createNote(content);
+    }
+  };
+
+  const handleNoteDelete = async () => {
+    if (editingNote) {
+      await deleteNote(editingNote.id);
+    }
   };
 
   const handleSessionPress = (sessionId: number) => {
@@ -121,7 +140,7 @@ export default function TimelineScreen() {
                 <NoteCard
                   key={`note-${entry.data.id}`}
                   note={entry.data}
-                  onPress={() => handleNotePress(entry.data.id)}
+                  onPress={() => handleNotePress(entry.data)}
                 />
               );
             }
@@ -148,6 +167,17 @@ export default function TimelineScreen() {
         }}
         onSave={handleTaskSave}
         onDelete={editingTask ? handleTaskDelete : undefined}
+      />
+
+      <NoteModal
+        visible={noteModalVisible}
+        note={editingNote}
+        onClose={() => {
+          setNoteModalVisible(false);
+          setEditingNote(null);
+        }}
+        onSave={handleNoteSave}
+        onDelete={editingNote ? handleNoteDelete : undefined}
       />
     </ThemedView>
   );

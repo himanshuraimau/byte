@@ -3,8 +3,6 @@
  */
 
 export { UserProvider, useUser } from './UserContext';
-// Context providers will be exported here as they are created
-// Example:
-// export { DateContext, DateProvider } from './DateContext';
-// export { TimerContext, TimerProvider } from './TimerContext';
-// export { TimelineContext, TimelineProvider } from './TimelineContext';
+export { DateProvider, useDate } from './DateContext';
+export { TimelineProvider, useTimeline } from './TimelineContext';
+// TimerContext will be added in Phase 7

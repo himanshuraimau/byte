@@ -6,6 +6,9 @@ import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { UserProvider, useUser } from '@/context/UserContext';
+import { DateProvider, useDate } from '@/context/DateContext';
+import { TimelineProvider } from '@/context/TimelineContext';
+import { ReactNode } from 'react';
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -33,14 +36,23 @@ function RootLayoutNav() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-      </Stack>
-      <StatusBar style="auto" />
+      <DateProvider>
+        <TimelineProviderWrapper>
+          <Stack>
+            <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+          </Stack>
+          <StatusBar style="auto" />
+        </TimelineProviderWrapper>
+      </DateProvider>
     </ThemeProvider>
   );
+}
+
+function TimelineProviderWrapper({ children }: { children: ReactNode }) {
+  const { selectedDate } = useDate();
+  return <TimelineProvider selectedDate={selectedDate}>{children}</TimelineProvider>;
 }
 
 export default function RootLayout() {

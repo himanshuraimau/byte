@@ -1,3 +1,4 @@
+import { TaskModal } from '@/components/modals/TaskModal';
 import { AddActionBar } from '@/components/timeline/AddActionBar';
 import { DateHeader } from '@/components/timeline/DateHeader';
 import { EmptyState } from '@/components/timeline/EmptyState';
@@ -9,16 +10,21 @@ import { ThemedView } from '@/components/ui/themed-view';
 import { Colors, Spacing } from '@/constants/theme';
 import { useDate } from '@/context/DateContext';
 import { useTimeline } from '@/context/TimelineContext';
-import React from 'react';
+import { useTask } from '@/hooks/useTask';
+import { Task } from '@/types/entities';
+import React, { useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
 
 export default function TimelineScreen() {
   const { selectedDate, temporalMode, setTemporalMode } = useDate();
   const { entries, loading, entriesCount, refreshTimeline } = useTimeline();
+  const { createTask, updateTask, deleteTask, toggleTaskComplete } = useTask();
+  const [taskModalVisible, setTaskModalVisible] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   const handleAddTask = () => {
-    // TODO: Open task modal in Phase 5
-    console.log('Add task');
+    setEditingTask(null);
+    setTaskModalVisible(true);
   };
 
   const handleAddNote = () => {
@@ -31,14 +37,31 @@ export default function TimelineScreen() {
     console.log('Add session');
   };
 
-  const handleTaskPress = (taskId: number) => {
-    // TODO: Open task edit modal in Phase 5
-    console.log('Edit task', taskId);
+  const handleTaskPress = (task: Task) => {
+    setEditingTask(task);
+    setTaskModalVisible(true);
   };
 
-  const handleTaskToggle = (taskId: number) => {
-    // TODO: Toggle task completion in Phase 5
-    console.log('Toggle task', taskId);
+  const handleTaskToggle = async (task: Task) => {
+    try {
+      await toggleTaskComplete(task.id, !task.completed);
+    } catch (error) {
+      console.error('Failed to toggle task:', error);
+    }
+  };
+
+  const handleTaskSave = async (data: { title: string; progress: number }) => {
+    if (editingTask) {
+      await updateTask(editingTask.id, data);
+    } else {
+      await createTask(data.title, data.progress);
+    }
+  };
+
+  const handleTaskDelete = async () => {
+    if (editingTask) {
+      await deleteTask(editingTask.id);
+    }
   };
 
   const handleNotePress = (noteId: number) => {
@@ -88,8 +111,8 @@ export default function TimelineScreen() {
                 <TaskCard
                   key={`task-${entry.data.id}`}
                   task={entry.data}
-                  onPress={() => handleTaskPress(entry.data.id)}
-                  onToggleComplete={() => handleTaskToggle(entry.data.id)}
+                  onPress={() => handleTaskPress(entry.data)}
+                  onToggleComplete={() => handleTaskToggle(entry.data)}
                 />
               );
             }
@@ -115,6 +138,17 @@ export default function TimelineScreen() {
           })
         )}
       </ScrollView>
+
+      <TaskModal
+        visible={taskModalVisible}
+        task={editingTask}
+        onClose={() => {
+          setTaskModalVisible(false);
+          setEditingTask(null);
+        }}
+        onSave={handleTaskSave}
+        onDelete={editingTask ? handleTaskDelete : undefined}
+      />
     </ThemedView>
   );
 }

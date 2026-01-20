@@ -1,4 +1,4 @@
-import { Colors, Radius, Spacing, Typography } from "@/constants/theme";
+import { Colors, Spacing } from "@/constants/theme";
 import { DateService } from "@/services/DateService";
 import { TemporalMode } from "@/types/entities";
 import React from "react";
@@ -16,79 +16,93 @@ export function SegmentedControl({
   onChange,
 }: SegmentedControlProps) {
   const segments: { label: string; value: TemporalMode }[] = [
-    { label: "YESTERDAY", value: "yesterday" },
-    { label: "TODAY", value: "today" },
-    { label: "TOMORROW", value: "tomorrow" },
+    { label: "Yesterday", value: "yesterday" },
+    { label: "Today", value: "today" },
+    { label: "Tomorrow", value: "tomorrow" },
   ];
 
   // If we're in custom mode and have a selectedDate, show it
   if (value === "custom" && selectedDate) {
     const customLabel = DateService.formatDisplay(selectedDate);
     return (
-      <View style={styles.container}>
-        <View
-          style={[styles.segment, styles.segmentActive, styles.customSegment]}
-        >
-          <Text style={[styles.segmentText, styles.segmentTextActive]}>
-            {customLabel}
-          </Text>
+      <View style={styles.wrapper}>
+        <View style={styles.container}>
+          <View style={[styles.segment, styles.segmentActive]}>
+            <Text style={[styles.segmentText, styles.segmentTextActive]}>
+              {customLabel}
+            </Text>
+          </View>
         </View>
       </View>
     );
   }
   return (
-    <View style={styles.container}>
-      {segments.map((segment) => {
-        const isActive = value === segment.value;
-        return (
-          <TouchableOpacity
-            key={segment.value}
-            style={[styles.segment, isActive && styles.segmentActive]}
-            onPress={() => onChange(segment.value)}
-            activeOpacity={0.7}
-          >
-            <Text
-              style={[styles.segmentText, isActive && styles.segmentTextActive]}
-            >
-              {segment.label}
-            </Text>
-          </TouchableOpacity>
-        );
-      })}
+    <View style={styles.wrapper}>
+      <View style={styles.container}>
+        {segments.map((segment, index) => {
+          const isActive = value === segment.value;
+          return (
+            <React.Fragment key={segment.value}>
+              <TouchableOpacity
+                style={[styles.segment, isActive && styles.segmentActive]}
+                onPress={() => onChange(segment.value)}
+                activeOpacity={0.7}
+              >
+                <Text
+                  style={[
+                    styles.segmentText,
+                    isActive && styles.segmentTextActive,
+                  ]}
+                >
+                  {segment.label}
+                </Text>
+              </TouchableOpacity>
+              {index < segments.length - 1 && <View style={styles.separator} />}
+            </React.Fragment>
+          );
+        })}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  wrapper: {
+    alignSelf: "center",
+    maxWidth: 400,
+  },
   container: {
     flexDirection: "row",
-    backgroundColor: Colors.bg1,
-    borderRadius: Radius.md,
-    padding: 4,
-    gap: 4,
-  },
-  segment: {
-    flex: 1,
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.base,
-    borderRadius: Radius.sm,
     alignItems: "center",
     justifyContent: "center",
+    paddingHorizontal: Spacing.base,
+  },
+  segment: {
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    alignItems: "center",
+    justifyContent: "center",
+    minWidth: 100,
   },
   segmentActive: {
-    backgroundColor: Colors.bg0,
-    ...Typography.body,
+    backgroundColor: Colors.bg1,
+    borderRadius: 999,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.xl,
   },
   segmentText: {
-    ...Typography.body,
-    fontWeight: "500",
+    fontSize: 15,
+    fontWeight: "400",
     color: Colors.text2,
-    fontSize: 14,
+    letterSpacing: 0,
   },
   segmentTextActive: {
     color: Colors.text0,
+    fontWeight: "500",
   },
-  customSegment: {
-    flex: 1,
+  separator: {
+    width: 1,
+    height: 16,
+    backgroundColor: Colors.border0,
   },
 });

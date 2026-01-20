@@ -20,7 +20,15 @@ import { useToast } from "@/hooks/useToast";
 import { Note, Task } from "@/types/entities";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
+import {
+    ActivityIndicator,
+    Platform,
+    SafeAreaView,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    View,
+} from "react-native";
 
 export default function TimelineScreen() {
   const router = useRouter();
@@ -204,19 +212,23 @@ export default function TimelineScreen() {
 
   return (
     <ThemedView style={styles.container}>
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.headerSection}>
+          <View style={styles.dateNavigator}>
+            <SegmentedControl
+              value={temporalMode}
+              selectedDate={selectedDate}
+              onChange={setTemporalMode}
+            />
+          </View>
+        </View>
+      </SafeAreaView>
+
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.header}>
-          <SegmentedControl
-            value={temporalMode}
-            selectedDate={selectedDate}
-            onChange={setTemporalMode}
-          />
-        </View>
-
         <DateHeader
           date={selectedDate}
           entriesCount={entriesCount}
@@ -318,18 +330,27 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.bg1,
   },
+  safeArea: {
+    backgroundColor: Colors.bg0,
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
+  },
+  headerSection: {
+    backgroundColor: Colors.bg0,
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing.lg,
+    paddingHorizontal: Spacing.lg,
+  },
+  dateNavigator: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    padding: Spacing.lg,
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.lg,
     paddingBottom: Spacing["3xl"],
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: Spacing.xl,
   },
   calendarButton: {
     width: 40,

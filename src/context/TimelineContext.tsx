@@ -1,14 +1,20 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import * as SQLite from 'expo-sqlite';
-import { TimelineEntry } from '@/types/entities';
-import { initDatabase } from '@/database/db';
+import { initDatabase } from "@/database/db";
 import {
-  DayRepository,
-  TaskRepository,
-  NoteRepository,
-  SessionRepository,
-} from '@/database/repositories';
-import { TimelineService } from '@/services/TimelineService';
+    DayRepository,
+    NoteRepository,
+    SessionRepository,
+    TaskRepository,
+} from "@/database/repositories";
+import { TimelineService } from "@/services/TimelineService";
+import { TimelineEntry } from "@/types/entities";
+import * as SQLite from "expo-sqlite";
+import React, {
+    createContext,
+    ReactNode,
+    useContext,
+    useEffect,
+    useState,
+} from "react";
 
 interface TimelineContextType {
   entries: TimelineEntry[];
@@ -18,20 +24,26 @@ interface TimelineContextType {
   refreshTimeline: (date: string) => Promise<void>;
 }
 
-const TimelineContext = createContext<TimelineContextType | undefined>(undefined);
+const TimelineContext = createContext<TimelineContextType | undefined>(
+  undefined,
+);
 
 interface TimelineProviderProps {
   children: ReactNode;
   selectedDate: string;
 }
 
-export function TimelineProvider({ children, selectedDate }: TimelineProviderProps) {
+export function TimelineProvider({
+  children,
+  selectedDate,
+}: TimelineProviderProps) {
   const [entries, setEntries] = useState<TimelineEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [entriesCount, setEntriesCount] = useState(0);
   const [db, setDb] = useState<SQLite.SQLiteDatabase | null>(null);
-  const [timelineService, setTimelineService] = useState<TimelineService | null>(null);
+  const [timelineService, setTimelineService] =
+    useState<TimelineService | null>(null);
 
   // Initialize database and services
   useEffect(() => {
@@ -45,11 +57,16 @@ export function TimelineProvider({ children, selectedDate }: TimelineProviderPro
         const noteRepo = new NoteRepository(database);
         const sessionRepo = new SessionRepository(database);
 
-        const service = new TimelineService(dayRepo, taskRepo, noteRepo, sessionRepo);
+        const service = new TimelineService(
+          dayRepo,
+          taskRepo,
+          noteRepo,
+          sessionRepo,
+        );
         setTimelineService(service);
       } catch (err) {
         setError(err as Error);
-        console.error('Failed to initialize timeline:', err);
+        console.error("Failed to initialize timeline:", err);
       } finally {
         setLoading(false);
       }
@@ -58,15 +75,20 @@ export function TimelineProvider({ children, selectedDate }: TimelineProviderPro
     init();
   }, []);
 
-  // Refresh timeline when date changes
+  // Refresh timeline when date changes or timelineService becomes available
   useEffect(() => {
     if (timelineService) {
-      refreshTimeline(selectedDate);
+      refreshTimeline(selectedDate).catch((err) => {
+        console.error("Failed to refresh timeline in useEffect:", err);
+      });
     }
   }, [selectedDate, timelineService]);
 
   const refreshTimeline = async (date: string) => {
-    if (!timelineService) return;
+    if (!timelineService || !db) {
+      console.log("Timeline service or database not ready yet");
+      return;
+    }
 
     try {
       setLoading(true);
@@ -81,7 +103,7 @@ export function TimelineProvider({ children, selectedDate }: TimelineProviderPro
       setEntriesCount(count);
     } catch (err) {
       setError(err as Error);
-      console.error('Failed to refresh timeline:', err);
+      console.error("Failed to refresh timeline:", err);
     } finally {
       setLoading(false);
     }
@@ -95,7 +117,8 @@ export function TimelineProvider({ children, selectedDate }: TimelineProviderPro
         error,
         entriesCount,
         refreshTimeline,
-      }}>
+      }}
+    >
       {children}
     </TimelineContext.Provider>
   );
@@ -104,7 +127,7 @@ export function TimelineProvider({ children, selectedDate }: TimelineProviderPro
 export function useTimeline() {
   const context = useContext(TimelineContext);
   if (context === undefined) {
-    throw new Error('useTimeline must be used within a TimelineProvider');
+    throw new Error("useTimeline must be used within a TimelineProvider");
   }
   return context;
 }

@@ -1,16 +1,18 @@
-import { Colors, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
-import { parseDateISO } from '@/utils/date';
-import React, { useEffect, useState } from 'react';
+import { parseDateISO } from "@/utils/date";
+import React, { useEffect, useState } from "react";
 import {
-  Modal,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View,
-} from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
-import { CalendarGrid } from './CalendarGrid';
+    Modal,
+    StyleSheet,
+    TouchableWithoutFeedback,
+    View
+} from "react-native";
+import Animated, {
+    useAnimatedStyle,
+    useSharedValue,
+    withSpring,
+    withTiming,
+} from "react-native-reanimated";
+import { CalendarGrid } from "./CalendarGrid";
 
 const AnimatedView = Animated.createAnimatedComponent(View);
 
@@ -21,11 +23,16 @@ interface CalendarModalProps {
   onDateSelect: (date: string) => void;
 }
 
-export function CalendarModal({ visible, selectedDate, onDateSelect, onClose }: CalendarModalProps) {
+export function CalendarModal({
+  visible,
+  selectedDate,
+  onDateSelect,
+  onClose,
+}: CalendarModalProps) {
   const selectedDateObj = parseDateISO(selectedDate);
   const [currentYear, setCurrentYear] = useState(selectedDateObj.getFullYear());
   const [currentMonth, setCurrentMonth] = useState(selectedDateObj.getMonth());
-  const scale = useSharedValue(0.9);
+  const scale = useSharedValue(0.95);
   const opacity = useSharedValue(0);
 
   useEffect(() => {
@@ -33,11 +40,11 @@ export function CalendarModal({ visible, selectedDate, onDateSelect, onClose }: 
       const dateObj = parseDateISO(selectedDate);
       setCurrentYear(dateObj.getFullYear());
       setCurrentMonth(dateObj.getMonth());
-      scale.value = withSpring(1, { damping: 15, stiffness: 300 });
+      scale.value = withSpring(1, { damping: 20, stiffness: 300 });
       opacity.value = withTiming(1, { duration: 200 });
     } else {
-      scale.value = withTiming(0.9, { duration: 200 });
-      opacity.value = withTiming(0, { duration: 200 });
+      scale.value = withTiming(0.95, { duration: 150 });
+      opacity.value = withTiming(0, { duration: 150 });
     }
   }, [visible, selectedDate]);
 
@@ -61,27 +68,20 @@ export function CalendarModal({ visible, selectedDate, onDateSelect, onClose }: 
       visible={visible}
       transparent
       animationType="fade"
-      onRequestClose={onClose}>
+      onRequestClose={onClose}
+      statusBarTranslucent
+    >
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.overlay}>
           <TouchableWithoutFeedback>
             <AnimatedView style={[styles.modal, modalStyle]}>
-              <View style={styles.header}>
-                <Text style={styles.title}>Select Date</Text>
-                <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                  <Text style={styles.closeText}>✕</Text>
-                </TouchableOpacity>
-              </View>
-
-              <View style={styles.content}>
-                <CalendarGrid
-                  year={currentYear}
-                  month={currentMonth}
-                  selectedDate={selectedDate}
-                  onDateSelect={handleDateSelect}
-                  onMonthChange={handleMonthChange}
-                />
-              </View>
+              <CalendarGrid
+                year={currentYear}
+                month={currentMonth}
+                selectedDate={selectedDate}
+                onDateSelect={handleDateSelect}
+                onMonthChange={handleMonthChange}
+              />
             </AnimatedView>
           </TouchableWithoutFeedback>
         </View>
@@ -93,41 +93,16 @@ export function CalendarModal({ visible, selectedDate, onDateSelect, onClose }: 
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: Spacing.xl,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "flex-end",
   },
   modal: {
-    backgroundColor: Colors.bg0,
-    borderRadius: Radius.lg,
-    width: '100%',
-    maxWidth: 400,
-    ...Shadows.z4,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: Spacing.xl,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border0,
-  },
-  title: {
-    ...Typography.h2,
-    color: Colors.text0,
-  },
-  closeButton: {
-    width: 32,
-    height: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  closeText: {
-    ...Typography.h2,
-    color: Colors.text2,
-  },
-  content: {
-    padding: Spacing.xl,
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    width: "100%",
+    paddingTop: 24,
+    paddingBottom: 24,
+    paddingHorizontal: 16,
   },
 });

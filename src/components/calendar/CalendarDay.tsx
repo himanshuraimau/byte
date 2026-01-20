@@ -1,6 +1,6 @@
-import { Colors, Radius, Typography } from '@/constants/theme';
-import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Colors } from "@/constants/theme";
+import React from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 interface CalendarDayProps {
   date: Date;
@@ -25,68 +25,76 @@ export function CalendarDay({
     <TouchableOpacity
       style={[
         styles.day,
+        isToday && !isSelected && styles.dayToday,
         isSelected && styles.daySelected,
         disabled && styles.dayDisabled,
       ]}
       onPress={onPress}
       disabled={disabled}
-      activeOpacity={0.7}>
+      activeOpacity={0.7}
+    >
       <Text
         style={[
           styles.dayText,
           isSelected && styles.dayTextSelected,
           disabled && styles.dayTextDisabled,
-        ]}>
+        ]}
+      >
         {dayNumber}
       </Text>
-      {hasEntries && <View style={styles.dot} />}
-      {isToday && !isSelected && <View style={styles.todayBorder} />}
+      {hasEntries && !isSelected && <View style={styles.dot} />}
+      {isToday && !isSelected && <View style={styles.todayDot} />}
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
   day: {
-    width: '100%',
-    maxWidth: '100%',
+    width: `${100 / 7 - (8 * 6) / 7 / 100}%`,
     aspectRatio: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: Radius.sm,
-    position: 'relative',
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "transparent",
+    borderRadius: 0,
+  },
+  dayToday: {
+    borderWidth: 1,
+    borderColor: "#CCCCCC",
   },
   daySelected: {
     backgroundColor: Colors.accent0,
+    borderWidth: 0,
   },
   dayDisabled: {
     opacity: 0.3,
   },
   dayText: {
-    ...Typography.monoSm,
-    color: Colors.text0,
+    fontSize: 16,
+    fontWeight: "400",
+    color: "#000000",
+    fontFamily: "System",
   },
   dayTextSelected: {
-    color: Colors.bg0,
+    color: "#FFFFFF",
+    fontWeight: "500",
   },
   dayTextDisabled: {
-    color: Colors.text3,
+    color: "#999999",
   },
   dot: {
-    position: 'absolute',
-    bottom: 4,
+    position: "absolute",
+    bottom: 6,
     width: 4,
     height: 4,
     borderRadius: 2,
     backgroundColor: Colors.accent0,
   },
-  todayBorder: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    borderRadius: Radius.sm,
-    borderWidth: 1,
-    borderColor: Colors.accent0,
+  todayDot: {
+    position: "absolute",
+    bottom: 6,
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: "#666666",
   },
 });

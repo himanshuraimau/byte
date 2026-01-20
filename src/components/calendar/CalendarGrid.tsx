@@ -1,10 +1,9 @@
-import { Colors, Spacing, Typography } from '@/constants/theme';
-import { initDatabase } from '@/database/db';
-import { DayRepository } from '@/database/repositories';
-import { formatDateISO, getTodayISO, parseDateISO } from '@/utils/date';
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { CalendarDay } from './CalendarDay';
+import { initDatabase } from "@/database/db";
+import { DayRepository } from "@/database/repositories";
+import { formatDateISO, getTodayISO, parseDateISO } from "@/utils/date";
+import React, { useEffect, useState } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { CalendarDay } from "./CalendarDay";
 
 interface CalendarGridProps {
   year: number;
@@ -15,14 +14,32 @@ interface CalendarGridProps {
 }
 
 const MONTH_NAMES = [
-  'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
-  'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC',
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
-const DAY_NAMES = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+const DAY_NAMES = ["S", "M", "T", "W", "T", "F", "S"];
 
-export function CalendarGrid({ year, month, selectedDate, onDateSelect, onMonthChange }: CalendarGridProps) {
-  const [daysWithEntries, setDaysWithEntries] = useState<Set<string>>(new Set());
+export function CalendarGrid({
+  year,
+  month,
+  selectedDate,
+  onDateSelect,
+  onMonthChange,
+}: CalendarGridProps) {
+  const [daysWithEntries, setDaysWithEntries] = useState<Set<string>>(
+    new Set(),
+  );
 
   useEffect(() => {
     loadDaysWithEntries(year, month);
@@ -33,20 +50,24 @@ export function CalendarGrid({ year, month, selectedDate, onDateSelect, onMonthC
       const db = await initDatabase();
       const dayRepo = new DayRepository(db);
 
-      // Get all days with entries for this month
       const days = await dayRepo.findAllWithEntries();
       const set = new Set<string>();
 
-      days.forEach((day) => {
-        const dayDate = parseDateISO(day.date);
-        if (dayDate.getFullYear() === y && dayDate.getMonth() === m) {
-          set.add(day.date);
-        }
-      });
+      if (days && Array.isArray(days)) {
+        days.forEach((day) => {
+          if (day && day.date) {
+            const dayDate = parseDateISO(day.date);
+            if (dayDate.getFullYear() === y && dayDate.getMonth() === m) {
+              set.add(day.date);
+            }
+          }
+        });
+      }
 
       setDaysWithEntries(set);
     } catch (error) {
-      console.error('Failed to load days with entries:', error);
+      console.error("Failed to load days with entries:", error);
+      setDaysWithEntries(new Set());
     }
   };
 
@@ -58,12 +79,10 @@ export function CalendarGrid({ year, month, selectedDate, onDateSelect, onMonthC
 
   const days: (Date | null)[] = [];
 
-  // Add empty cells for days before the first day of the month
   for (let i = 0; i < firstDayOfWeek; i++) {
     days.push(null);
   }
 
-  // Add all days of the month
   for (let day = 1; day <= daysInMonth; day++) {
     days.push(new Date(year, month, day));
   }
@@ -90,29 +109,35 @@ export function CalendarGrid({ year, month, selectedDate, onDateSelect, onMonthC
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={goToPreviousMonth} style={styles.navButton}>
+        <TouchableOpacity
+          onPress={goToPreviousMonth}
+          style={[styles.navButton, styles.navButtonLeft]}
+        >
           <Text style={styles.navText}>‹</Text>
         </TouchableOpacity>
         <Text style={styles.monthYear}>
           {MONTH_NAMES[month]} {year}
         </Text>
-        <TouchableOpacity onPress={goToNextMonth} style={styles.navButton}>
+        <TouchableOpacity
+          onPress={goToNextMonth}
+          style={[styles.navButton, styles.navButtonRight]}
+        >
           <Text style={styles.navText}>›</Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.dayNames}>
         {DAY_NAMES.map((day, index) => (
-          <Text key={index} style={styles.dayName}>
-            {day}
-          </Text>
+          <View key={index} style={styles.dayNameCell}>
+            <Text style={styles.dayName}>{day}</Text>
+          </View>
         ))}
       </View>
 
       <View style={styles.grid}>
         {days.map((date, index) => {
           if (date === null) {
-            return <View key={index} style={styles.day} />;
+            return <View key={index} style={styles.emptyDay} />;
           }
 
           const dateISO = formatDateISO(date);
@@ -138,48 +163,63 @@ export function CalendarGrid({ year, month, selectedDate, onDateSelect, onMonthC
 
 const styles = StyleSheet.create({
   container: {
-    gap: Spacing.base,
+    width: "100%",
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: Spacing.base,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 16,
+    position: "relative",
+    height: 32,
   },
   navButton: {
+    position: "absolute",
     width: 32,
     height: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  navButtonLeft: {
+    left: 0,
+  },
+  navButtonRight: {
+    right: 0,
   },
   navText: {
-    ...Typography.h2,
-    color: Colors.text0,
+    fontSize: 18,
+    fontWeight: "400",
+    color: "#000000",
   },
   monthYear: {
-    ...Typography.h2,
-    color: Colors.text0,
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#000000",
+    fontFamily: "System",
   },
   dayNames: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: Spacing.sm,
+    flexDirection: "row",
+    marginBottom: 12,
+  },
+  dayNameCell: {
+    flex: 1,
+    alignItems: "center",
   },
   dayName: {
-    ...Typography.monoXs,
-    color: Colors.text2,
-    flex: 1,
-    textAlign: 'center',
+    fontSize: 12,
+    fontWeight: "400",
+    color: "#666666",
+    textTransform: "uppercase",
+    fontFamily: "System",
+    letterSpacing: 0.5,
   },
   grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 2,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
   },
-  day: {
-    width: `${(100 / 7) - 0.5}%`,
+  emptyDay: {
+    width: `${100 / 7 - (8 * 6) / 7 / 100}%`,
     aspectRatio: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });

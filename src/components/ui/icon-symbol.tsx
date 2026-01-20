@@ -1,11 +1,14 @@
 // Fallback for using MaterialIcons on Android and web.
 
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { SymbolWeight, SymbolViewProps } from 'expo-symbols';
-import { ComponentProps } from 'react';
-import { OpaqueColorValue, type StyleProp, type TextStyle } from 'react-native';
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { SymbolViewProps, SymbolWeight } from "expo-symbols";
+import { ComponentProps } from "react";
+import { OpaqueColorValue, type StyleProp, type TextStyle } from "react-native";
 
-type IconMapping = Record<SymbolViewProps['name'], ComponentProps<typeof MaterialIcons>['name']>;
+type IconMapping = Record<
+  SymbolViewProps["name"],
+  ComponentProps<typeof MaterialIcons>["name"]
+>;
 type IconSymbolName = keyof typeof MAPPING;
 
 /**
@@ -15,20 +18,34 @@ type IconSymbolName = keyof typeof MAPPING;
  */
 const MAPPING = {
   // Navigation & Layout
-  'house.fill': 'home',
-  'chevron.left': 'chevron-left',
-  'chevron.right': 'chevron-right',
-  'chevron.left.forwardslash.chevron.right': 'code',
-  
+  "house.fill": "home",
+  "chevron.left": "chevron-left",
+  "chevron.right": "chevron-right",
+  "chevron.left.forwardslash.chevron.right": "code",
+
   // Actions
-  'plus': 'add',
-  'checkmark': 'check',
-  'paperplane.fill': 'send',
-  
+  plus: "add",
+  checkmark: "check",
+  "checkmark.circle.fill": "check-circle",
+  "paperplane.fill": "send",
+
   // Content Types
-  'doc.text': 'description',
-  'clock': 'schedule',
-  'calendar': 'calendar-today',
+  "doc.text": "description",
+  "note.text": "note",
+  clock: "schedule",
+  "clock.fill": "access-time",
+  calendar: "calendar-today",
+
+  // User & Account
+  "person.circle.fill": "account-circle",
+
+  // Notifications & Status
+  "bell.fill": "notifications",
+  "flame.fill": "local-fire-department",
+  "info.circle.fill": "info",
+
+  // Customization
+  "paintbrush.fill": "palette",
 } as IconMapping;
 
 // Validate all mappings exist
@@ -42,7 +59,7 @@ const validateMappings = () => {
     }
   });
   if (invalidMappings.length > 0) {
-    console.warn('Invalid icon mappings:', invalidMappings);
+    console.warn("Invalid icon mappings:", invalidMappings);
   }
 };
 
@@ -70,8 +87,20 @@ export function IconSymbol({
 }) {
   const iconName = MAPPING[name];
   if (!iconName) {
-    console.warn(`Icon "${name}" not found in mapping. Available icons:`, Object.keys(MAPPING));
-    return <MaterialIcons color={color} size={size} name="help-outline" style={style} />;
+    console.warn(
+      `Icon "${name}" not found in mapping. Available icons:`,
+      Object.keys(MAPPING),
+    );
+    return (
+      <MaterialIcons
+        color={color}
+        size={size}
+        name="help-outline"
+        style={style}
+      />
+    );
   }
-  return <MaterialIcons color={color} size={size} name={iconName} style={style} />;
+  return (
+    <MaterialIcons color={color} size={size} name={iconName} style={style} />
+  );
 }

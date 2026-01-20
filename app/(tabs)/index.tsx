@@ -1,29 +1,31 @@
-import { CalendarModal } from '@/components/calendar/CalendarModal';
-import { NoteModal } from '@/components/modals/NoteModal';
-import { TaskModal } from '@/components/modals/TaskModal';
-import { AddActionBar } from '@/components/timeline/AddActionBar';
-import { DateHeader } from '@/components/timeline/DateHeader';
-import { EmptyState } from '@/components/timeline/EmptyState';
-import { NoteCard } from '@/components/timeline/NoteCard';
-import { SessionCard } from '@/components/timeline/SessionCard';
-import { TaskCard } from '@/components/timeline/TaskCard';
-import { SegmentedControl } from '@/components/ui/SegmentedControl';
-import { ThemedView } from '@/components/ui/themed-view';
-import { Toast } from '@/components/ui/Toast';
-import { Colors, Spacing } from '@/constants/theme';
-import { useDate } from '@/context/DateContext';
-import { useTimeline } from '@/context/TimelineContext';
-import { useNote } from '@/hooks/useNote';
-import { useTask } from '@/hooks/useTask';
-import { useToast } from '@/hooks/useToast';
-import { Note, Task } from '@/types/entities';
-import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
+import { CalendarModal } from "@/components/calendar/CalendarModal";
+import { NoteModal } from "@/components/modals/NoteModal";
+import { TaskModal } from "@/components/modals/TaskModal";
+import { AddActionBar } from "@/components/timeline/AddActionBar";
+import { DateHeader } from "@/components/timeline/DateHeader";
+import { EmptyState } from "@/components/timeline/EmptyState";
+import { NoteCard } from "@/components/timeline/NoteCard";
+import { SessionCard } from "@/components/timeline/SessionCard";
+import { TaskCard } from "@/components/timeline/TaskCard";
+import { ActionSheet, ActionSheetOption } from "@/components/ui/ActionSheet";
+import { SegmentedControl } from "@/components/ui/SegmentedControl";
+import { ThemedView } from "@/components/ui/themed-view";
+import { Toast } from "@/components/ui/Toast";
+import { Colors, Spacing } from "@/constants/theme";
+import { useDate } from "@/context/DateContext";
+import { useTimeline } from "@/context/TimelineContext";
+import { useNote } from "@/hooks/useNote";
+import { useTask } from "@/hooks/useTask";
+import { useToast } from "@/hooks/useToast";
+import { Note, Task } from "@/types/entities";
+import { useRouter } from "expo-router";
+import React, { useState } from "react";
+import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 
 export default function TimelineScreen() {
   const router = useRouter();
-  const { selectedDate, temporalMode, setTemporalMode, setSelectedDate } = useDate();
+  const { selectedDate, temporalMode, setTemporalMode, setSelectedDate } =
+    useDate();
   const { entries, loading, entriesCount, refreshTimeline } = useTimeline();
   const { createTask, updateTask, deleteTask, toggleTaskComplete } = useTask();
   const { createNote, updateNote, deleteNote } = useNote();
@@ -33,6 +35,10 @@ export default function TimelineScreen() {
   const [noteModalVisible, setNoteModalVisible] = useState(false);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [calendarModalVisible, setCalendarModalVisible] = useState(false);
+  const [actionSheetVisible, setActionSheetVisible] = useState(false);
+  const [actionSheetOptions, setActionSheetOptions] = useState<
+    ActionSheetOption[]
+  >([]);
 
   const handleAddTask = () => {
     setEditingTask(null);
@@ -45,7 +51,7 @@ export default function TimelineScreen() {
   };
 
   const handleAddSession = () => {
-    router.push('/(tabs)/timer');
+    router.push("/(tabs)/timer");
   };
 
   const handleTaskPress = (task: Task) => {
@@ -53,13 +59,46 @@ export default function TimelineScreen() {
     setTaskModalVisible(true);
   };
 
+  const handleTaskLongPress = (task: Task) => {
+    const options: ActionSheetOption[] = [
+      {
+        label: "Edit",
+        onPress: () => {
+          setEditingTask(task);
+          setTaskModalVisible(true);
+        },
+      },
+      {
+        label: task.completed ? "Mark Incomplete" : "Mark Complete",
+        onPress: () => handleTaskToggle(task),
+      },
+      {
+        label: "Delete",
+        destructive: true,
+        onPress: async () => {
+          try {
+            await deleteTask(task.id);
+            showToast("Task deleted", "info");
+          } catch (error) {
+            showToast("Failed to delete task", "error");
+          }
+        },
+      },
+    ];
+    setActionSheetOptions(options);
+    setActionSheetVisible(true);
+  };
+
   const handleTaskToggle = async (task: Task) => {
     try {
       await toggleTaskComplete(task.id, !task.completed);
-      showToast(task.completed ? 'Task marked incomplete' : 'Task completed!', 'success');
+      showToast(
+        task.completed ? "Task marked incomplete" : "Task completed!",
+        "success",
+      );
     } catch (error) {
-      console.error('Failed to toggle task:', error);
-      showToast('Failed to update task', 'error');
+      console.error("Failed to toggle task:", error);
+      showToast("Failed to update task", "error");
     }
   };
 
@@ -67,13 +106,13 @@ export default function TimelineScreen() {
     try {
       if (editingTask) {
         await updateTask(editingTask.id, data);
-        showToast('Task updated', 'success');
+        showToast("Task updated", "success");
       } else {
         await createTask(data.title, data.progress);
-        showToast('Task created', 'success');
+        showToast("Task created", "success");
       }
     } catch (error) {
-      showToast('Failed to save task', 'error');
+      showToast("Failed to save task", "error");
       throw error;
     }
   };
@@ -82,9 +121,9 @@ export default function TimelineScreen() {
     if (editingTask) {
       try {
         await deleteTask(editingTask.id);
-        showToast('Task deleted', 'info');
+        showToast("Task deleted", "info");
       } catch (error) {
-        showToast('Failed to delete task', 'error');
+        showToast("Failed to delete task", "error");
         throw error;
       }
     }
@@ -95,17 +134,43 @@ export default function TimelineScreen() {
     setNoteModalVisible(true);
   };
 
+  const handleNoteLongPress = (note: Note) => {
+    const options: ActionSheetOption[] = [
+      {
+        label: "Edit",
+        onPress: () => {
+          setEditingNote(note);
+          setNoteModalVisible(true);
+        },
+      },
+      {
+        label: "Delete",
+        destructive: true,
+        onPress: async () => {
+          try {
+            await deleteNote(note.id);
+            showToast("Note deleted", "info");
+          } catch (error) {
+            showToast("Failed to delete note", "error");
+          }
+        },
+      },
+    ];
+    setActionSheetOptions(options);
+    setActionSheetVisible(true);
+  };
+
   const handleNoteSave = async (content: string) => {
     try {
       if (editingNote) {
         await updateNote(editingNote.id, content);
-        showToast('Note updated', 'success');
+        showToast("Note updated", "success");
       } else {
         await createNote(content);
-        showToast('Note created', 'success');
+        showToast("Note created", "success");
       }
     } catch (error) {
-      showToast('Failed to save note', 'error');
+      showToast("Failed to save note", "error");
       throw error;
     }
   };
@@ -114,9 +179,9 @@ export default function TimelineScreen() {
     if (editingNote) {
       try {
         await deleteNote(editingNote.id);
-        showToast('Note deleted', 'info');
+        showToast("Note deleted", "info");
       } catch (error) {
-        showToast('Failed to delete note', 'error');
+        showToast("Failed to delete note", "error");
         throw error;
       }
     }
@@ -124,7 +189,7 @@ export default function TimelineScreen() {
 
   const handleSessionPress = (sessionId: number) => {
     // TODO: Show session details in Phase 7
-    console.log('View session', sessionId);
+    console.log("View session", sessionId);
   };
 
   if (loading) {
@@ -142,9 +207,14 @@ export default function TimelineScreen() {
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}>
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.header}>
-          <SegmentedControl value={temporalMode} onChange={setTemporalMode} />
+          <SegmentedControl
+            value={temporalMode}
+            selectedDate={selectedDate}
+            onChange={setTemporalMode}
+          />
         </View>
 
         <DateHeader
@@ -163,26 +233,28 @@ export default function TimelineScreen() {
           <EmptyState message="No entries yet. Start by adding a task, note, or session." />
         ) : (
           entries.map((entry) => {
-            if (entry.type === 'task') {
+            if (entry.type === "task") {
               return (
                 <TaskCard
                   key={`task-${entry.data.id}`}
                   task={entry.data}
                   onPress={() => handleTaskPress(entry.data)}
+                  onLongPress={() => handleTaskLongPress(entry.data)}
                   onToggleComplete={() => handleTaskToggle(entry.data)}
                 />
               );
             }
-            if (entry.type === 'note') {
+            if (entry.type === "note") {
               return (
                 <NoteCard
                   key={`note-${entry.data.id}`}
                   note={entry.data}
                   onPress={() => handleNotePress(entry.data)}
+                  onLongPress={() => handleNoteLongPress(entry.data)}
                 />
               );
             }
-            if (entry.type === 'session') {
+            if (entry.type === "session") {
               return (
                 <SessionCard
                   key={`session-${entry.data.id}`}
@@ -225,6 +297,12 @@ export default function TimelineScreen() {
         onDateSelect={setSelectedDate}
       />
 
+      <ActionSheet
+        visible={actionSheetVisible}
+        onClose={() => setActionSheetVisible(false)}
+        options={actionSheetOptions}
+      />
+
       <Toast
         message={toast.message}
         type={toast.type}
@@ -245,23 +323,23 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: Spacing.lg,
-    paddingBottom: Spacing['3xl'],
+    paddingBottom: Spacing["3xl"],
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: Spacing.xl,
   },
   calendarButton: {
     width: 40,
     height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   loadingContainer: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

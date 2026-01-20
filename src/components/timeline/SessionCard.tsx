@@ -1,32 +1,42 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Colors, Typography, Spacing } from '@/constants/theme';
-import { Session } from '@/types/entities';
-import { Card } from '@/components/ui/Card';
-import { formatTime, formatDurationSeconds } from '@/utils/date';
+import { Card } from "@/components/ui/Card";
+import { Colors, Spacing, Typography } from "@/constants/theme";
+import { Session } from "@/types/entities";
+import { formatDurationSeconds, formatTime } from "@/utils/date";
+import React from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 interface SessionCardProps {
   session: Session;
   onPress?: () => void;
+  onLongPress?: () => void;
 }
 
-export function SessionCard({ session, onPress }: SessionCardProps) {
+export function SessionCard({
+  session,
+  onPress,
+  onLongPress,
+}: SessionCardProps) {
   const timestamp = formatTime(session.created_at);
   const startedTime = formatTime(session.started_at);
   const endedTime = session.ended_at ? formatTime(session.ended_at) : null;
-  
+
   // Calculate actual duration if completed
-  const actualDurationSeconds = session.ended_at && session.started_at
-    ? session.ended_at - session.started_at
-    : null;
+  const actualDurationSeconds =
+    session.ended_at && session.started_at
+      ? session.ended_at - session.started_at
+      : null;
   const durationDisplay = actualDurationSeconds
     ? formatDurationSeconds(Math.floor(actualDurationSeconds))
     : formatDurationSeconds(session.duration_minutes * 60);
 
-  const statusText = session.completed ? 'SESSION_COMPLETE' : 'SESSION_ACTIVE';
+  const statusText = session.completed ? "SESSION_COMPLETE" : "SESSION_ACTIVE";
 
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.9}>
+    <TouchableOpacity
+      onPress={onPress}
+      onLongPress={onLongPress}
+      activeOpacity={0.9}
+    >
       <Card>
         <View style={styles.header}>
           <Text style={styles.typeLabel}>[{statusText}]</Text>
@@ -58,9 +68,9 @@ export function SessionCard({ session, onPress }: SessionCardProps) {
 
 const styles = StyleSheet.create({
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: Spacing.sm,
   },
   typeLabel: {
@@ -80,7 +90,7 @@ const styles = StyleSheet.create({
     gap: Spacing.xs,
   },
   metadataRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: Spacing.sm,
   },
   metadataLabel: {
@@ -90,6 +100,6 @@ const styles = StyleSheet.create({
   metadataValue: {
     ...Typography.monoSm,
     color: Colors.accent0,
-    fontWeight: '500',
+    fontWeight: "500",
   },
 });

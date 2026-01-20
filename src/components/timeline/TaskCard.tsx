@@ -1,24 +1,34 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Colors, Typography, Spacing } from '@/constants/theme';
-import { Task } from '@/types/entities';
-import { Card } from '@/components/ui/Card';
-import { ProgressBar } from '@/components/ui/ProgressBar';
-import { Checkbox } from '@/components/ui/Checkbox';
-import { formatTime } from '@/utils/date';
+import { Card } from "@/components/ui/Card";
+import { Checkbox } from "@/components/ui/Checkbox";
+import { ProgressBar } from "@/components/ui/ProgressBar";
+import { Colors, Spacing, Typography } from "@/constants/theme";
+import { Task } from "@/types/entities";
+import { formatTime } from "@/utils/date";
+import React from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 interface TaskCardProps {
   task: Task;
   onPress?: () => void;
+  onLongPress?: () => void;
   onToggleComplete?: () => void;
 }
 
-export function TaskCard({ task, onPress, onToggleComplete }: TaskCardProps) {
+export function TaskCard({
+  task,
+  onPress,
+  onLongPress,
+  onToggleComplete,
+}: TaskCardProps) {
   const timestamp = formatTime(task.created_at);
-  const statusText = task.completed ? 'COMPLETE' : 'INCOMPLETE';
+  const statusText = task.completed ? "COMPLETE" : "INCOMPLETE";
 
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.9}>
+    <TouchableOpacity
+      onPress={onPress}
+      onLongPress={onLongPress}
+      activeOpacity={0.9}
+    >
       <Card style={task.completed && styles.completed}>
         <View style={styles.header}>
           <Text style={styles.typeLabel}>[TASK]</Text>
@@ -34,7 +44,10 @@ export function TaskCard({ task, onPress, onToggleComplete }: TaskCardProps) {
         </View>
 
         <View style={styles.footer}>
-          <Checkbox checked={task.completed} onToggle={onToggleComplete || (() => {})} />
+          <Checkbox
+            checked={task.completed}
+            onToggle={onToggleComplete || (() => {})}
+          />
           <Text style={styles.status}>{statusText}</Text>
         </View>
       </Card>
@@ -47,9 +60,9 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: Spacing.sm,
   },
   typeLabel: {
@@ -66,19 +79,19 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.base,
   },
   titleCompleted: {
-    textDecorationLine: 'line-through',
+    textDecorationLine: "line-through",
   },
   progressContainer: {
     marginBottom: Spacing.base,
   },
   footer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: Spacing.sm,
   },
   status: {
     ...Typography.monoXs,
     color: Colors.text2,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
   },
 });

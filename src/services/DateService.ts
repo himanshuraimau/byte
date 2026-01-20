@@ -1,5 +1,10 @@
-import { TemporalMode } from '@/types/entities';
-import { getTodayISO, getTomorrowISO, getYesterdayISO, parseDateISO } from '@/utils/date';
+import { TemporalMode } from "@/types/entities";
+import {
+    getTodayISO,
+    getTomorrowISO,
+    getYesterdayISO,
+    parseDateISO,
+} from "@/utils/date";
 
 export class DateService {
   /**
@@ -7,12 +12,16 @@ export class DateService {
    */
   static getDateForMode(mode: TemporalMode): string {
     switch (mode) {
-      case 'yesterday':
+      case "yesterday":
         return getYesterdayISO();
-      case 'today':
+      case "today":
         return getTodayISO();
-      case 'tomorrow':
+      case "tomorrow":
         return getTomorrowISO();
+      case "custom":
+        // For custom mode, return today as fallback
+        // The actual date will be set via setSelectedDate
+        return getTodayISO();
     }
   }
 
@@ -24,20 +33,12 @@ export class DateService {
     const yesterday = getYesterdayISO();
     const tomorrow = getTomorrowISO();
 
-    if (date === today) return 'today';
-    if (date === yesterday) return 'yesterday';
-    if (date === tomorrow) return 'tomorrow';
+    if (date === today) return "today";
+    if (date === yesterday) return "yesterday";
+    if (date === tomorrow) return "tomorrow";
 
-    // For dates in the past, return 'yesterday' mode (read-only)
-    // For dates in the future, return 'tomorrow' mode (planning)
-    const dateObj = parseDateISO(date);
-    const todayObj = parseDateISO(today);
-
-    if (dateObj < todayObj) {
-      return 'yesterday';
-    }
-
-    return 'tomorrow';
+    // For any other date, return 'custom' mode
+    return "custom";
   }
 
   /**
@@ -49,12 +50,25 @@ export class DateService {
     const yesterday = getYesterdayISO();
     const tomorrow = getTomorrowISO();
 
-    if (date === today) return 'TODAY';
-    if (date === yesterday) return 'YESTERDAY';
-    if (date === tomorrow) return 'TOMORROW';
+    if (date === today) return "TODAY";
+    if (date === yesterday) return "YESTERDAY";
+    if (date === tomorrow) return "TOMORROW";
 
     // Format as "JAN 20, 2026"
-    const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+    const months = [
+      "JAN",
+      "FEB",
+      "MAR",
+      "APR",
+      "MAY",
+      "JUN",
+      "JUL",
+      "AUG",
+      "SEP",
+      "OCT",
+      "NOV",
+      "DEC",
+    ];
     const month = months[dateObj.getMonth()];
     const day = dateObj.getDate();
     const year = dateObj.getFullYear();
@@ -92,7 +106,20 @@ export class DateService {
    */
   static formatFullDate(date: string): string {
     const dateObj = parseDateISO(date);
-    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const months = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ];
     const month = months[dateObj.getMonth()];
     const day = dateObj.getDate();
     const year = dateObj.getFullYear();
@@ -104,7 +131,15 @@ export class DateService {
    */
   static getDayOfWeek(date: string): string {
     const dateObj = parseDateISO(date);
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const days = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
     return days[dateObj.getDay()];
   }
 }

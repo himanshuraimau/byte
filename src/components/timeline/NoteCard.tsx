@@ -1,23 +1,28 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Colors, Typography, Spacing } from '@/constants/theme';
-import { Note } from '@/types/entities';
-import { Card } from '@/components/ui/Card';
-import { formatTime } from '@/utils/date';
+import { Card } from "@/components/ui/Card";
+import { Colors, Spacing, Typography } from "@/constants/theme";
+import { Note } from "@/types/entities";
+import { formatTime } from "@/utils/date";
+import React from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 interface NoteCardProps {
   note: Note;
   onPress?: () => void;
+  onLongPress?: () => void;
 }
 
-export function NoteCard({ note, onPress }: NoteCardProps) {
+export function NoteCard({ note, onPress, onLongPress }: NoteCardProps) {
   const timestamp = formatTime(note.created_at);
-  const lines = note.content.split('\n');
+  const lines = note.content.split("\n");
   const firstLine = lines[0];
-  const restLines = lines.slice(1).join('\n');
+  const restLines = lines.slice(1).join("\n");
 
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.9}>
+    <TouchableOpacity
+      onPress={onPress}
+      onLongPress={onLongPress}
+      activeOpacity={0.9}
+    >
       <Card>
         <View style={styles.header}>
           <Text style={styles.typeLabel}>[NOTE]</Text>
@@ -33,9 +38,9 @@ export function NoteCard({ note, onPress }: NoteCardProps) {
 
 const styles = StyleSheet.create({
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: Spacing.sm,
   },
   typeLabel: {

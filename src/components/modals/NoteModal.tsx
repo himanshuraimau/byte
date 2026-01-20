@@ -1,20 +1,31 @@
-import { Button } from '@/components/ui/Button';
-import { Textarea } from '@/components/ui/Textarea';
-import { Colors, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
-import { Note } from '@/types/entities';
-import React, { useEffect, useState } from 'react';
+import { Button } from "@/components/ui/Button";
+import { Textarea } from "@/components/ui/Textarea";
 import {
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View,
-} from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
+    Colors,
+    Radius,
+    Shadows,
+    Spacing,
+    Typography,
+} from "@/constants/theme";
+import { Note } from "@/types/entities";
+import React, { useEffect, useState } from "react";
+import {
+    KeyboardAvoidingView,
+    Modal,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    View,
+} from "react-native";
+import Animated, {
+    useAnimatedStyle,
+    useSharedValue,
+    withSpring,
+    withTiming,
+} from "react-native-reanimated";
 
 const AnimatedView = Animated.createAnimatedComponent(View);
 
@@ -26,10 +37,16 @@ interface NoteModalProps {
   onDelete?: () => Promise<void>;
 }
 
-export function NoteModal({ visible, note, onClose, onSave, onDelete }: NoteModalProps) {
-  const [content, setContent] = useState('');
+export function NoteModal({
+  visible,
+  note,
+  onClose,
+  onSave,
+  onDelete,
+}: NoteModalProps) {
+  const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const scale = useSharedValue(0.9);
   const opacity = useSharedValue(0);
 
@@ -39,9 +56,9 @@ export function NoteModal({ visible, note, onClose, onSave, onDelete }: NoteModa
     if (note) {
       setContent(note.content);
     } else {
-      setContent('');
+      setContent("");
     }
-    setError('');
+    setError("");
   }, [note, visible]);
 
   useEffect(() => {
@@ -61,20 +78,20 @@ export function NoteModal({ visible, note, onClose, onSave, onDelete }: NoteModa
 
   const handleSave = async () => {
     if (!content.trim()) {
-      setError('Content is required');
+      setError("Content is required");
       return;
     }
 
     try {
       setLoading(true);
-      setError('');
+      setError("");
       await onSave(content.trim());
       // Reset form state
-      setContent('');
-      setError('');
+      setContent("");
+      setError("");
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save note');
+      setError(err instanceof Error ? err.message : "Failed to save note");
     } finally {
       setLoading(false);
     }
@@ -85,11 +102,11 @@ export function NoteModal({ visible, note, onClose, onSave, onDelete }: NoteModa
 
     try {
       setLoading(true);
-      setError('');
+      setError("");
       await onDelete();
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete note');
+      setError(err instanceof Error ? err.message : "Failed to delete note");
     } finally {
       setLoading(false);
     }
@@ -100,41 +117,45 @@ export function NoteModal({ visible, note, onClose, onSave, onDelete }: NoteModa
       visible={visible}
       transparent
       animationType="fade"
-      onRequestClose={onClose}>
+      onRequestClose={onClose}
+    >
       <TouchableWithoutFeedback onPress={onClose}>
         <AnimatedView style={styles.overlay}>
           <TouchableWithoutFeedback>
             <KeyboardAvoidingView
-              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-              style={styles.container}>
+              behavior={Platform.OS === "ios" ? "padding" : "height"}
+              style={styles.container}
+            >
               <AnimatedView style={[styles.modal, modalStyle]}>
                 <View style={styles.header}>
                   <Text style={styles.title}>
-                    {isEditMode ? 'Edit Note' : 'New Note'}
+                    {isEditMode ? "Edit Note" : "New Note"}
                   </Text>
-                  <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+                  <TouchableOpacity
+                    onPress={onClose}
+                    style={styles.closeButton}
+                  >
                     <Text style={styles.closeText}>✕</Text>
                   </TouchableOpacity>
                 </View>
 
-                <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+                <ScrollView
+                  style={styles.content}
+                  showsVerticalScrollIndicator={false}
+                >
                   <Textarea
                     label="CONTENT"
                     value={content}
                     onChangeText={(text) => {
                       setContent(text);
-                      setError('');
+                      setError("");
                     }}
                     placeholder="Enter your note..."
                     autoFocus
                     style={styles.textarea}
                   />
 
-                  {error ? (
-                    <Text style={styles.error}>{error}</Text>
-                  ) : null}
-
-
+                  {error ? <Text style={styles.error}>{error}</Text> : null}
                 </ScrollView>
 
                 <View style={styles.actions}>
@@ -149,7 +170,7 @@ export function NoteModal({ visible, note, onClose, onSave, onDelete }: NoteModa
                   )}
                   <View style={styles.saveButton}>
                     <Button
-                      title={isEditMode ? 'SAVE' : 'CREATE'}
+                      title={isEditMode ? "SAVE" : "CREATE"}
                       onPress={handleSave}
                       disabled={loading || !content.trim()}
                     />
@@ -167,25 +188,26 @@ export function NoteModal({ visible, note, onClose, onSave, onDelete }: NoteModa
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
+    justifyContent: "center",
+    alignItems: "center",
     padding: Spacing.xl,
   },
   container: {
-    width: '100%',
+    width: "100%",
     maxWidth: 400,
   },
   modal: {
     backgroundColor: Colors.bg0,
     borderRadius: Radius.lg,
     ...Shadows.z3,
-    maxHeight: '80%',
+    maxHeight: "85%",
+    minHeight: "60%",
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     padding: Spacing.xl,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border0,
@@ -197,8 +219,8 @@ const styles = StyleSheet.create({
   closeButton: {
     width: 32,
     height: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   closeText: {
     ...Typography.h2,
@@ -206,9 +228,10 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: Spacing.xl,
+    paddingTop: Spacing["2xl"],
   },
   textarea: {
-    minHeight: 200,
+    minHeight: 300,
     marginBottom: Spacing.xl,
   },
   error: {
@@ -227,6 +250,6 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
   },
   saveButton: {
-    width: '100%',
+    width: "100%",
   },
 });

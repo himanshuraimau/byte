@@ -44,9 +44,11 @@ export interface Session {
   created_at: number;
 }
 
-export type TimelineEntry = 
-  | { type: 'task'; data: Task }
-  | { type: 'note'; data: Note }
-  | { type: 'session'; data: Session };
+export type TimelineEntry =
+  | { type: "task"; data: Task }
+  | { type: "note"; data: Note }
+  | { type: "session"; data: Session };
 
-export type TemporalMode = 'yesterday' | 'today' | 'tomorrow';
+export type TemporalMode = "yesterday" | "today" | "tomorrow" | "custom";
+
+export type TemporalMode = "yesterday" | "today" | "tomorrow";

@@ -1,6 +1,12 @@
-import React from 'react';
-import { TextInput, StyleSheet, TextInputProps, View, Text } from 'react-native';
-import { Colors, Typography, Spacing } from '@/constants/theme';
+import { Colors, Spacing, Typography } from "@/constants/theme";
+import React from "react";
+import {
+    StyleSheet,
+    Text,
+    TextInput,
+    TextInputProps,
+    View,
+} from "react-native";
 
 interface TextareaProps extends TextInputProps {
   label?: string;
@@ -31,17 +37,18 @@ const styles = StyleSheet.create({
     ...Typography.monoSm,
     color: Colors.text1,
     marginBottom: Spacing.sm,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
   },
   textarea: {
     ...Typography.body,
     color: Colors.text0,
-    lineHeight: Typography.body.lineHeight,
-    minHeight: 100,
+    lineHeight: 24,
+    minHeight: 150,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border0,
-    paddingVertical: Spacing.md,
+    paddingVertical: Spacing.lg,
     paddingHorizontal: 0,
+    fontSize: 16,
   },
   textareaError: {
     borderBottomColor: Colors.destructive,

@@ -5,12 +5,14 @@
 export interface User {
   id: number;
   name: string;
+  password?: string; // Optional when retrieving (never expose password)
   created_at: number; // Unix timestamp
 }
 
 export interface Day {
   id: number;
   date: string; // ISO 8601: YYYY-MM-DD
+  user_id: number; // Foreign key to users table
   created_at: number; // Unix timestamp
 }
 

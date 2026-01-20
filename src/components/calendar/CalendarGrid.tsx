@@ -1,3 +1,4 @@
+import { useUser } from "@/context/UserContext";
 import { initDatabase } from "@/database/db";
 import { DayRepository } from "@/database/repositories";
 import { formatDateISO, getTodayISO, parseDateISO } from "@/utils/date";
@@ -37,20 +38,23 @@ export function CalendarGrid({
   onDateSelect,
   onMonthChange,
 }: CalendarGridProps) {
+  const { user } = useUser();
   const [daysWithEntries, setDaysWithEntries] = useState<Set<string>>(
     new Set(),
   );
 
   useEffect(() => {
     loadDaysWithEntries(year, month);
-  }, [year, month]);
+  }, [year, month, user]);
 
   const loadDaysWithEntries = async (y: number, m: number) => {
+    if (!user) return;
+
     try {
       const db = await initDatabase();
       const dayRepo = new DayRepository(db);
 
-      const days = await dayRepo.findAllWithEntries();
+      const days = await dayRepo.findAllWithEntries(user.id);
       const set = new Set<string>();
 
       if (days && Array.isArray(days)) {

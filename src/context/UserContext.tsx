@@ -1,16 +1,21 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import * as SQLite from 'expo-sqlite';
-import { User } from '@/types/entities';
-import { UserRepository } from '@/database/repositories/UserRepository';
-import { Config } from '@/constants/config';
-import { initDatabase } from '@/database/db';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
+import * as SQLite from "expo-sqlite";
+import { User } from "@/types/entities";
+import { UserRepository } from "@/database/repositories/UserRepository";
+import { initDatabase } from "@/database/db";
 
 interface UserContextType {
   user: User | null;
   loading: boolean;
-  setUser: (user: User) => void;
-  createUser: (name: string) => Promise<void>;
-  updateUser: (name: string) => Promise<void>;
+  login: (name: string, password: string) => Promise<void>;
+  register: (name: string, password: string) => Promise<void>;
+  logout: () => void;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -29,14 +34,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
         setDb(database);
         const repository = new UserRepository(database);
         setUserRepo(repository);
-
-        // Check if user exists
-        const existingUser = await repository.getFirst();
-        if (existingUser) {
-          setUserState(existingUser);
-        }
       } catch (error) {
-        console.error('Failed to initialize database:', error);
+        console.error("Failed to initialize database:", error);
       } finally {
         setLoading(false);
       }
@@ -45,36 +44,36 @@ export function UserProvider({ children }: { children: ReactNode }) {
     setupDatabase();
   }, []);
 
-  const setUser = (userData: User) => {
-    setUserState(userData);
-  };
-
-  const createUser = async (name: string): Promise<void> => {
+  const login = async (name: string, password: string): Promise<void> => {
     if (!userRepo) {
-      throw new Error('Database not initialized');
+      throw new Error("Database not initialized");
     }
 
     try {
-      const newUser = await userRepo.create(name);
+      const loggedInUser = await userRepo.login(name, password);
+      setUserState(loggedInUser);
+    } catch (error) {
+      console.error("Failed to login:", error);
+      throw error;
+    }
+  };
+
+  const register = async (name: string, password: string): Promise<void> => {
+    if (!userRepo) {
+      throw new Error("Database not initialized");
+    }
+
+    try {
+      const newUser = await userRepo.register(name, password);
       setUserState(newUser);
     } catch (error) {
-      console.error('Failed to create user:', error);
+      console.error("Failed to register:", error);
       throw error;
     }
   };
 
-  const updateUser = async (name: string): Promise<void> => {
-    if (!userRepo || !user) {
-      throw new Error('User or database not initialized');
-    }
-
-    try {
-      const updatedUser = await userRepo.update(user.id, name);
-      setUserState(updatedUser);
-    } catch (error) {
-      console.error('Failed to update user:', error);
-      throw error;
-    }
+  const logout = () => {
+    setUserState(null);
   };
 
   return (
@@ -82,10 +81,11 @@ export function UserProvider({ children }: { children: ReactNode }) {
       value={{
         user,
         loading,
-        setUser,
-        createUser,
-        updateUser,
-      }}>
+        login,
+        register,
+        logout,
+      }}
+    >
       {children}
     </UserContext.Provider>
   );
@@ -94,7 +94,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
 export function useUser() {
   const context = useContext(UserContext);
   if (context === undefined) {
-    throw new Error('useUser must be used within a UserProvider');
+    throw new Error("useUser must be used within a UserProvider");
   }
   return context;
 }

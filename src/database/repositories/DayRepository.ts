@@ -1,5 +1,5 @@
-import * as SQLite from 'expo-sqlite';
-import { Day } from '@/types/entities';
+import { Day } from "@/types/entities";
+import * as SQLite from "expo-sqlite";
 
 export class DayRepository {
   private db: SQLite.SQLiteDatabase;
@@ -9,19 +9,19 @@ export class DayRepository {
   }
 
   /**
-   * Create or get a day by date (ISO 8601: YYYY-MM-DD)
+   * Create or get a day by date (ISO 8601: YYYY-MM-DD) for a specific user
    */
-  async createOrGet(date: string): Promise<Day> {
+  async createOrGet(date: string, userId: number): Promise<Day> {
     // Try to get existing day first
-    const existing = await this.findByDate(date);
+    const existing = await this.findByDate(date, userId);
     if (existing) {
       return existing;
     }
 
     // Create new day
     const result = await this.db.runAsync(
-      'INSERT INTO days (date) VALUES (?)',
-      [date]
+      "INSERT INTO days (date, user_id) VALUES (?, ?)",
+      [date, userId],
     );
 
     if (result.lastInsertRowId) {
@@ -29,10 +29,10 @@ export class DayRepository {
       if (day) {
         return day;
       }
-      throw new Error('Failed to retrieve created day');
+      throw new Error("Failed to retrieve created day");
     }
 
-    throw new Error('Failed to create day');
+    throw new Error("Failed to create day");
   }
 
   /**
@@ -42,13 +42,15 @@ export class DayRepository {
     const result = await this.db.getFirstAsync<{
       id: number;
       date: string;
+      user_id: number;
       created_at: number;
-    }>('SELECT * FROM days WHERE id = ?', [id]);
+    }>("SELECT * FROM days WHERE id = ?", [id]);
 
     if (result) {
       return {
         id: result.id,
         date: result.date,
+        user_id: result.user_id,
         created_at: result.created_at,
       };
     }
@@ -57,19 +59,21 @@ export class DayRepository {
   }
 
   /**
-   * Find day by date (ISO 8601: YYYY-MM-DD)
+   * Find day by date (ISO 8601: YYYY-MM-DD) for a specific user
    */
-  async findByDate(date: string): Promise<Day | null> {
+  async findByDate(date: string, userId: number): Promise<Day | null> {
     const result = await this.db.getFirstAsync<{
       id: number;
       date: string;
+      user_id: number;
       created_at: number;
-    }>('SELECT * FROM days WHERE date = ?', [date]);
+    }>("SELECT * FROM days WHERE date = ? AND user_id = ?", [date, userId]);
 
     if (result) {
       return {
         id: result.id,
         date: result.date,
+        user_id: result.user_id,
         created_at: result.created_at,
       };
     }
@@ -78,25 +82,30 @@ export class DayRepository {
   }
 
   /**
-   * Get all days with entries (has tasks, notes, or sessions)
+   * Get all days with entries (has tasks, notes, or sessions) for a specific user
    */
-  async findAllWithEntries(): Promise<Day[]> {
+  async findAllWithEntries(userId: number): Promise<Day[]> {
     const result = await this.db.getAllAsync<{
       id: number;
       date: string;
+      user_id: number;
       created_at: number;
-    }>(`
+    }>(
+      `
       SELECT DISTINCT d.* FROM days d
       LEFT JOIN tasks t ON d.id = t.day_id
       LEFT JOIN notes n ON d.id = n.day_id
       LEFT JOIN sessions s ON d.id = s.day_id
-      WHERE t.id IS NOT NULL OR n.id IS NOT NULL OR s.id IS NOT NULL
+      WHERE d.user_id = ? AND (t.id IS NOT NULL OR n.id IS NOT NULL OR s.id IS NOT NULL)
       ORDER BY d.date DESC
-    `);
+    `,
+      [userId],
+    );
 
     return result.map((row) => ({
       id: row.id,
       date: row.date,
+      user_id: row.user_id,
       created_at: row.created_at,
     }));
   }
@@ -105,6 +114,6 @@ export class DayRepository {
    * Delete a day (cascades to tasks, notes, sessions)
    */
   async delete(id: number): Promise<void> {
-    await this.db.runAsync('DELETE FROM days WHERE id = ?', [id]);
+    await this.db.runAsync("DELETE FROM days WHERE id = ?", [id]);
   }
 }

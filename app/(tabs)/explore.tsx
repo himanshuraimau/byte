@@ -1,13 +1,42 @@
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { ThemedView } from '@/components/ui/themed-view';
-import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
-import React from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { IconSymbol } from "@/components/ui/icon-symbol";
+import { ThemedView } from "@/components/ui/themed-view";
+import { Colors, Radius, Spacing, Typography } from "@/constants/theme";
+import { useUser } from "@/context/UserContext";
+import { useRouter } from "expo-router";
+import React from "react";
+import {
+    Alert,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from "react-native";
 
 export default function ExploreScreen() {
+  const { user, logout } = useUser();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    Alert.alert("Logout", "Are you sure you want to logout?", [
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
+      {
+        text: "Logout",
+        style: "destructive",
+        onPress: () => {
+          logout();
+          router.replace("/login");
+        },
+      },
+    ]);
+  };
+
   // Mock profile data - in a real app, this would come from a database or context
   const profileData = {
-    name: 'User',
+    name: user?.name || "User",
     totalSessions: 0,
     totalTasks: 0,
     totalNotes: 0,
@@ -19,12 +48,16 @@ export default function ExploreScreen() {
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}>
-
+        showsVerticalScrollIndicator={false}
+      >
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.avatarContainer}>
-            <IconSymbol name="person.circle.fill" size={80} color={Colors.accent0} />
+            <IconSymbol
+              name="person.circle.fill"
+              size={80}
+              color={Colors.accent0}
+            />
           </View>
           <Text style={styles.name}>{profileData.name}</Text>
           <Text style={styles.subtitle}>Byte User</Text>
@@ -39,7 +72,11 @@ export default function ExploreScreen() {
           </View>
 
           <View style={styles.statCard}>
-            <IconSymbol name="checkmark.circle.fill" size={32} color={Colors.accent0} />
+            <IconSymbol
+              name="checkmark.circle.fill"
+              size={32}
+              color={Colors.accent0}
+            />
             <Text style={styles.statValue}>{profileData.totalTasks}</Text>
             <Text style={styles.statLabel}>Tasks</Text>
           </View>
@@ -62,7 +99,8 @@ export default function ExploreScreen() {
           <Text style={styles.sectionTitle}>ABOUT</Text>
           <View style={styles.infoCard}>
             <Text style={styles.infoText}>
-              Track your productivity with Byte. Create tasks, take notes, and run focused sessions to achieve your goals.
+              Track your productivity with Byte. Create tasks, take notes, and
+              run focused sessions to achieve your goals.
             </Text>
           </View>
         </View>
@@ -76,13 +114,35 @@ export default function ExploreScreen() {
               <Text style={styles.settingText}>Notifications</Text>
             </View>
             <View style={styles.settingItem}>
-              <IconSymbol name="paintbrush.fill" size={20} color={Colors.text1} />
+              <IconSymbol
+                name="paintbrush.fill"
+                size={20}
+                color={Colors.text1}
+              />
               <Text style={styles.settingText}>Appearance</Text>
             </View>
             <View style={styles.settingItem}>
-              <IconSymbol name="info.circle.fill" size={20} color={Colors.text1} />
+              <IconSymbol
+                name="info.circle.fill"
+                size={20}
+                color={Colors.text1}
+              />
               <Text style={styles.settingText}>About</Text>
             </View>
+            <TouchableOpacity
+              style={[styles.settingItem, styles.settingItemLast]}
+              onPress={handleLogout}
+              activeOpacity={0.7}
+            >
+              <IconSymbol
+                name="arrow.right.square.fill"
+                size={20}
+                color={Colors.destructive}
+              />
+              <Text style={[styles.settingText, styles.dangerText]}>
+                Logout
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
@@ -100,12 +160,12 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: Spacing.xl,
-    paddingBottom: Spacing['3xl'],
+    paddingBottom: Spacing["3xl"],
   },
   header: {
-    alignItems: 'center',
-    marginTop: Spacing['2xl'],
-    marginBottom: Spacing['2xl'],
+    alignItems: "center",
+    marginTop: Spacing["2xl"],
+    marginBottom: Spacing["2xl"],
   },
   avatarContainer: {
     marginBottom: Spacing.base,
@@ -120,18 +180,18 @@ const styles = StyleSheet.create({
     color: Colors.text2,
   },
   statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: Spacing.base,
-    marginBottom: Spacing['2xl'],
+    marginBottom: Spacing["2xl"],
   },
   statCard: {
     flex: 1,
-    minWidth: '45%',
+    minWidth: "45%",
     backgroundColor: Colors.bg0,
     borderRadius: Radius.md,
     padding: Spacing.lg,
-    alignItems: 'center',
+    alignItems: "center",
     gap: Spacing.sm,
     borderWidth: 1,
     borderColor: Colors.border0,
@@ -143,7 +203,7 @@ const styles = StyleSheet.create({
   statLabel: {
     ...Typography.monoSm,
     color: Colors.text2,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
   },
   infoSection: {
     marginBottom: Spacing.xl,
@@ -152,7 +212,7 @@ const styles = StyleSheet.create({
     ...Typography.monoSm,
     color: Colors.text1,
     marginBottom: Spacing.base,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
   },
   infoCard: {
     backgroundColor: Colors.bg0,
@@ -171,18 +231,24 @@ const styles = StyleSheet.create({
     borderRadius: Radius.md,
     borderWidth: 1,
     borderColor: Colors.border0,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   settingItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: Spacing.lg,
     gap: Spacing.base,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border0,
   },
+  settingItemLast: {
+    borderBottomWidth: 0,
+  },
   settingText: {
     ...Typography.body,
     color: Colors.text1,
+  },
+  dangerText: {
+    color: Colors.destructive,
   },
 });

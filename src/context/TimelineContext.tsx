@@ -15,6 +15,7 @@ import React, {
     useEffect,
     useState,
 } from "react";
+import { useUser } from "./UserContext";
 
 interface TimelineContextType {
   entries: TimelineEntry[];
@@ -37,6 +38,7 @@ export function TimelineProvider({
   children,
   selectedDate,
 }: TimelineProviderProps) {
+  const { user } = useUser();
   const [entries, setEntries] = useState<TimelineEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -85,8 +87,8 @@ export function TimelineProvider({
   }, [selectedDate, timelineService]);
 
   const refreshTimeline = async (date: string) => {
-    if (!timelineService || !db) {
-      console.log("Timeline service or database not ready yet");
+    if (!timelineService || !db || !user) {
+      console.log("Timeline service, database, or user not ready yet");
       return;
     }
 
@@ -95,8 +97,8 @@ export function TimelineProvider({
       setError(null);
 
       const [timelineEntries, count] = await Promise.all([
-        timelineService.getTimelineEntries(date),
-        timelineService.getEntriesCount(date),
+        timelineService.getTimelineEntries(date, user.id),
+        timelineService.getEntriesCount(date, user.id),
       ]);
 
       setEntries(timelineEntries);

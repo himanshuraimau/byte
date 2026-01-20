@@ -1,23 +1,26 @@
-import { TimelineEntry, Task, Note, Session } from '@/types/entities';
-import { DayRepository } from '@/database/repositories/DayRepository';
-import { TaskRepository } from '@/database/repositories/TaskRepository';
-import { NoteRepository } from '@/database/repositories/NoteRepository';
-import { SessionRepository } from '@/database/repositories/SessionRepository';
+import { DayRepository } from "@/database/repositories/DayRepository";
+import { NoteRepository } from "@/database/repositories/NoteRepository";
+import { SessionRepository } from "@/database/repositories/SessionRepository";
+import { TaskRepository } from "@/database/repositories/TaskRepository";
+import { TimelineEntry } from "@/types/entities";
 
 export class TimelineService {
   constructor(
     private dayRepo: DayRepository,
     private taskRepo: TaskRepository,
     private noteRepo: NoteRepository,
-    private sessionRepo: SessionRepository
+    private sessionRepo: SessionRepository,
   ) {}
 
   /**
    * Get all timeline entries for a specific date, sorted chronologically
    */
-  async getTimelineEntries(date: string): Promise<TimelineEntry[]> {
+  async getTimelineEntries(
+    date: string,
+    userId: number,
+  ): Promise<TimelineEntry[]> {
     // Get or create day
-    const day = await this.dayRepo.createOrGet(date);
+    const day = await this.dayRepo.createOrGet(date, userId);
 
     // Fetch all entries
     const [tasks, notes, sessions] = await Promise.all([
@@ -28,9 +31,12 @@ export class TimelineService {
 
     // Combine and sort by creation time
     const entries: TimelineEntry[] = [
-      ...tasks.map((task) => ({ type: 'task' as const, data: task })),
-      ...notes.map((note) => ({ type: 'note' as const, data: note })),
-      ...sessions.map((session) => ({ type: 'session' as const, data: session })),
+      ...tasks.map((task) => ({ type: "task" as const, data: task })),
+      ...notes.map((note) => ({ type: "note" as const, data: note })),
+      ...sessions.map((session) => ({
+        type: "session" as const,
+        data: session,
+      })),
     ];
 
     // Sort by created_at timestamp
@@ -46,8 +52,8 @@ export class TimelineService {
   /**
    * Get entries count for a date
    */
-  async getEntriesCount(date: string): Promise<number> {
-    const day = await this.dayRepo.findByDate(date);
+  async getEntriesCount(date: string, userId: number): Promise<number> {
+    const day = await this.dayRepo.findByDate(date, userId);
     if (!day) {
       return 0;
     }
@@ -64,8 +70,8 @@ export class TimelineService {
   /**
    * Check if a date has any entries
    */
-  async hasEntries(date: string): Promise<boolean> {
-    const count = await this.getEntriesCount(date);
+  async hasEntries(date: string, userId: number): Promise<boolean> {
+    const count = await this.getEntriesCount(date, userId);
     return count > 0;
   }
 }

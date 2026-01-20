@@ -8,6 +8,7 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { UserProvider, useUser } from '@/context/UserContext';
 import { DateProvider, useDate } from '@/context/DateContext';
 import { TimelineProvider } from '@/context/TimelineContext';
+import { TimerProvider } from '@/context/TimerContext';
 import { ReactNode } from 'react';
 
 export const unstable_settings = {
@@ -37,14 +38,16 @@ function RootLayoutNav() {
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <DateProvider>
-        <TimelineProviderWrapper>
-          <Stack>
-            <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-          </Stack>
-          <StatusBar style="auto" />
-        </TimelineProviderWrapper>
+        <TimerProvider>
+          <TimelineProviderWrapper>
+            <Stack>
+              <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+            </Stack>
+            <StatusBar style="auto" />
+          </TimelineProviderWrapper>
+        </TimerProvider>
       </DateProvider>
     </ThemeProvider>
   );

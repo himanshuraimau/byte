@@ -1,7 +1,10 @@
 import React from 'react';
 import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { Colors, Typography, Radius, Shadows, Spacing } from '@/constants/theme';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+
+const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
 interface AddActionBarProps {
   onAddTask: () => void;
@@ -10,22 +13,61 @@ interface AddActionBarProps {
 }
 
 export function AddActionBar({ onAddTask, onAddNote, onAddSession }: AddActionBarProps) {
+  const taskScale = useSharedValue(1);
+  const noteScale = useSharedValue(1);
+  const sessionScale = useSharedValue(1);
+
+  const taskStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: taskScale.value }],
+  }));
+
+  const noteStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: noteScale.value }],
+  }));
+
+  const sessionStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: sessionScale.value }],
+  }));
+
+  const handlePressIn = (scale: Animated.SharedValue<number>) => {
+    scale.value = withSpring(0.95, { damping: 15, stiffness: 300 });
+  };
+
+  const handlePressOut = (scale: Animated.SharedValue<number>) => {
+    scale.value = withSpring(1, { damping: 15, stiffness: 300 });
+  };
+
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.action} onPress={onAddTask} activeOpacity={0.8}>
+      <AnimatedTouchable
+        style={[styles.action, taskStyle]}
+        onPress={onAddTask}
+        onPressIn={() => handlePressIn(taskScale)}
+        onPressOut={() => handlePressOut(taskScale)}
+        activeOpacity={0.8}>
         <IconSymbol name="plus" size={20} color={Colors.text2} />
         <Text style={styles.actionText}>TASK</Text>
-      </TouchableOpacity>
+      </AnimatedTouchable>
 
-      <TouchableOpacity style={styles.action} onPress={onAddNote} activeOpacity={0.8}>
+      <AnimatedTouchable
+        style={[styles.action, noteStyle]}
+        onPress={onAddNote}
+        onPressIn={() => handlePressIn(noteScale)}
+        onPressOut={() => handlePressOut(noteScale)}
+        activeOpacity={0.8}>
         <IconSymbol name="doc.text" size={20} color={Colors.text2} />
         <Text style={styles.actionText}>NOTE</Text>
-      </TouchableOpacity>
+      </AnimatedTouchable>
 
-      <TouchableOpacity style={styles.action} onPress={onAddSession} activeOpacity={0.8}>
+      <AnimatedTouchable
+        style={[styles.action, sessionStyle]}
+        onPress={onAddSession}
+        onPressIn={() => handlePressIn(sessionScale)}
+        onPressOut={() => handlePressOut(sessionScale)}
+        activeOpacity={0.8}>
         <IconSymbol name="clock" size={20} color={Colors.text2} />
         <Text style={styles.actionText}>SESSION</Text>
-      </TouchableOpacity>
+      </AnimatedTouchable>
     </View>
   );
 }

@@ -14,11 +14,42 @@ type IconSymbolName = keyof typeof MAPPING;
  * - see SF Symbols in the [SF Symbols](https://developer.apple.com/sf-symbols/) app.
  */
 const MAPPING = {
+  // Navigation & Layout
   'house.fill': 'home',
-  'paperplane.fill': 'send',
-  'chevron.left.forwardslash.chevron.right': 'code',
+  'chevron.left': 'chevron-left',
   'chevron.right': 'chevron-right',
+  'chevron.left.forwardslash.chevron.right': 'code',
+  
+  // Actions
+  'plus': 'add',
+  'checkmark': 'check',
+  'paperplane.fill': 'send',
+  
+  // Content Types
+  'doc.text': 'description',
+  'clock': 'schedule',
+  'calendar': 'calendar-today',
 } as IconMapping;
+
+// Validate all mappings exist
+const validateMappings = () => {
+  const invalidMappings: string[] = [];
+  Object.entries(MAPPING).forEach(([sfSymbol, materialIcon]) => {
+    // Material Icons names should be valid - we'll let MaterialIcons handle validation
+    // But we can at least check they're not empty
+    if (!materialIcon) {
+      invalidMappings.push(sfSymbol);
+    }
+  });
+  if (invalidMappings.length > 0) {
+    console.warn('Invalid icon mappings:', invalidMappings);
+  }
+};
+
+// Run validation in development
+if (__DEV__) {
+  validateMappings();
+}
 
 /**
  * An icon component that uses native SF Symbols on iOS, and Material Icons on Android and web.
@@ -37,5 +68,10 @@ export function IconSymbol({
   style?: StyleProp<TextStyle>;
   weight?: SymbolWeight;
 }) {
-  return <MaterialIcons color={color} size={size} name={MAPPING[name]} style={style} />;
+  const iconName = MAPPING[name];
+  if (!iconName) {
+    console.warn(`Icon "${name}" not found in mapping. Available icons:`, Object.keys(MAPPING));
+    return <MaterialIcons color={color} size={size} name="help-outline" style={style} />;
+  }
+  return <MaterialIcons color={color} size={size} name={iconName} style={style} />;
 }

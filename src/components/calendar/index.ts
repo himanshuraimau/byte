@@ -2,4 +2,6 @@
  * Calendar Components barrel exports
  */
 
-// Components will be exported here as they are created
+export { CalendarModal } from './CalendarModal';
+export { CalendarGrid } from './CalendarGrid';
+export { CalendarDay } from './CalendarDay';

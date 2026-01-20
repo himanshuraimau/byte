@@ -10,7 +10,10 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming } from 'react-native-reanimated';
 import { Colors, Typography, Spacing, Radius, Shadows } from '@/constants/theme';
+
+const AnimatedView = Animated.createAnimatedComponent(View);
 import { Textarea } from '@/components/ui/Textarea';
 import { Button } from '@/components/ui/Button';
 import { Note } from '@/types/entities';
@@ -27,6 +30,8 @@ export function NoteModal({ visible, note, onClose, onSave, onDelete }: NoteModa
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const scale = useSharedValue(0.9);
+  const opacity = useSharedValue(0);
 
   const isEditMode = !!note;
 
@@ -39,6 +44,21 @@ export function NoteModal({ visible, note, onClose, onSave, onDelete }: NoteModa
     setError('');
   }, [note, visible]);
 
+  useEffect(() => {
+    if (visible) {
+      scale.value = withSpring(1, { damping: 15, stiffness: 300 });
+      opacity.value = withTiming(1, { duration: 200 });
+    } else {
+      scale.value = withTiming(0.9, { duration: 200 });
+      opacity.value = withTiming(0, { duration: 200 });
+    }
+  }, [visible]);
+
+  const modalStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+    opacity: opacity.value,
+  }));
+
   const handleSave = async () => {
     if (!content.trim()) {
       setError('Content is required');
@@ -49,6 +69,9 @@ export function NoteModal({ visible, note, onClose, onSave, onDelete }: NoteModa
       setLoading(true);
       setError('');
       await onSave(content.trim());
+      // Reset form state
+      setContent('');
+      setError('');
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save note');
@@ -79,12 +102,12 @@ export function NoteModal({ visible, note, onClose, onSave, onDelete }: NoteModa
       animationType="fade"
       onRequestClose={onClose}>
       <TouchableWithoutFeedback onPress={onClose}>
-        <View style={styles.overlay}>
+        <AnimatedView style={styles.overlay}>
           <TouchableWithoutFeedback>
             <KeyboardAvoidingView
               behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
               style={styles.container}>
-              <View style={styles.modal}>
+              <AnimatedView style={[styles.modal, modalStyle]}>
                 <View style={styles.header}>
                   <Text style={styles.title}>
                     {isEditMode ? 'Edit Note' : 'New Note'}
@@ -130,10 +153,10 @@ export function NoteModal({ visible, note, onClose, onSave, onDelete }: NoteModa
                     </View>
                   </View>
                 </ScrollView>
-              </View>
+              </AnimatedView>
             </KeyboardAvoidingView>
           </TouchableWithoutFeedback>
-        </View>
+        </AnimatedView>
       </TouchableWithoutFeedback>
     </Modal>
   );

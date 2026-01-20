@@ -1,19 +1,28 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Colors, Typography, Spacing } from '@/constants/theme';
 import { DateService } from '@/services/DateService';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 
 interface DateHeaderProps {
   date: string;
   entriesCount?: number;
+  onCalendarPress?: () => void;
 }
 
-export function DateHeader({ date, entriesCount }: DateHeaderProps) {
+export function DateHeader({ date, entriesCount, onCalendarPress }: DateHeaderProps) {
   const displayText = DateService.formatDisplay(date);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.dateText}>{displayText}</Text>
+      <View style={styles.headerRow}>
+        <Text style={styles.dateText}>{displayText}</Text>
+        {onCalendarPress && (
+          <TouchableOpacity onPress={onCalendarPress} style={styles.calendarButton}>
+            <IconSymbol name="calendar" size={24} color={Colors.text2} />
+          </TouchableOpacity>
+        )}
+      </View>
       {entriesCount !== undefined && (
         <View style={styles.metadata}>
           <Text style={styles.metadataText}>[TIMELINE_ACTIVE]</Text>
@@ -29,10 +38,20 @@ const styles = StyleSheet.create({
     marginTop: Spacing['2xl'],
     marginBottom: Spacing.xl,
   },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+  },
   dateText: {
     ...Typography.display,
     color: Colors.text0,
-    marginBottom: Spacing.sm,
+    flex: 1,
+  },
+  calendarButton: {
+    padding: Spacing.sm,
+    marginLeft: Spacing.base,
   },
   metadata: {
     flexDirection: 'row',

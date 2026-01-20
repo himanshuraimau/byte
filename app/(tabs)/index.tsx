@@ -1,3 +1,4 @@
+import { CalendarModal } from '@/components/calendar/CalendarModal';
 import { NoteModal } from '@/components/modals/NoteModal';
 import { TaskModal } from '@/components/modals/TaskModal';
 import { AddActionBar } from '@/components/timeline/AddActionBar';
@@ -8,24 +9,30 @@ import { SessionCard } from '@/components/timeline/SessionCard';
 import { TaskCard } from '@/components/timeline/TaskCard';
 import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { ThemedView } from '@/components/ui/themed-view';
+import { Toast } from '@/components/ui/Toast';
 import { Colors, Spacing } from '@/constants/theme';
 import { useDate } from '@/context/DateContext';
 import { useTimeline } from '@/context/TimelineContext';
 import { useNote } from '@/hooks/useNote';
 import { useTask } from '@/hooks/useTask';
+import { useToast } from '@/hooks/useToast';
 import { Note, Task } from '@/types/entities';
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
 
 export default function TimelineScreen() {
-  const { selectedDate, temporalMode, setTemporalMode } = useDate();
+  const router = useRouter();
+  const { selectedDate, temporalMode, setTemporalMode, setSelectedDate } = useDate();
   const { entries, loading, entriesCount, refreshTimeline } = useTimeline();
   const { createTask, updateTask, deleteTask, toggleTaskComplete } = useTask();
   const { createNote, updateNote, deleteNote } = useNote();
+  const { toast, showToast, hideToast } = useToast();
   const [taskModalVisible, setTaskModalVisible] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [noteModalVisible, setNoteModalVisible] = useState(false);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
+  const [calendarModalVisible, setCalendarModalVisible] = useState(false);
 
   const handleAddTask = () => {
     setEditingTask(null);
@@ -38,8 +45,7 @@ export default function TimelineScreen() {
   };
 
   const handleAddSession = () => {
-    // TODO: Navigate to timer screen in Phase 7
-    console.log('Add session');
+    router.push('/(tabs)/timer');
   };
 
   const handleTaskPress = (task: Task) => {
@@ -50,22 +56,37 @@ export default function TimelineScreen() {
   const handleTaskToggle = async (task: Task) => {
     try {
       await toggleTaskComplete(task.id, !task.completed);
+      showToast(task.completed ? 'Task marked incomplete' : 'Task completed!', 'success');
     } catch (error) {
       console.error('Failed to toggle task:', error);
+      showToast('Failed to update task', 'error');
     }
   };
 
   const handleTaskSave = async (data: { title: string; progress: number }) => {
-    if (editingTask) {
-      await updateTask(editingTask.id, data);
-    } else {
-      await createTask(data.title, data.progress);
+    try {
+      if (editingTask) {
+        await updateTask(editingTask.id, data);
+        showToast('Task updated', 'success');
+      } else {
+        await createTask(data.title, data.progress);
+        showToast('Task created', 'success');
+      }
+    } catch (error) {
+      showToast('Failed to save task', 'error');
+      throw error;
     }
   };
 
   const handleTaskDelete = async () => {
     if (editingTask) {
-      await deleteTask(editingTask.id);
+      try {
+        await deleteTask(editingTask.id);
+        showToast('Task deleted', 'info');
+      } catch (error) {
+        showToast('Failed to delete task', 'error');
+        throw error;
+      }
     }
   };
 
@@ -75,16 +96,29 @@ export default function TimelineScreen() {
   };
 
   const handleNoteSave = async (content: string) => {
-    if (editingNote) {
-      await updateNote(editingNote.id, content);
-    } else {
-      await createNote(content);
+    try {
+      if (editingNote) {
+        await updateNote(editingNote.id, content);
+        showToast('Note updated', 'success');
+      } else {
+        await createNote(content);
+        showToast('Note created', 'success');
+      }
+    } catch (error) {
+      showToast('Failed to save note', 'error');
+      throw error;
     }
   };
 
   const handleNoteDelete = async () => {
     if (editingNote) {
-      await deleteNote(editingNote.id);
+      try {
+        await deleteNote(editingNote.id);
+        showToast('Note deleted', 'info');
+      } catch (error) {
+        showToast('Failed to delete note', 'error');
+        throw error;
+      }
     }
   };
 
@@ -113,7 +147,11 @@ export default function TimelineScreen() {
           <SegmentedControl value={temporalMode} onChange={setTemporalMode} />
         </View>
 
-        <DateHeader date={selectedDate} entriesCount={entriesCount} />
+        <DateHeader
+          date={selectedDate}
+          entriesCount={entriesCount}
+          onCalendarPress={() => setCalendarModalVisible(true)}
+        />
 
         <AddActionBar
           onAddTask={handleAddTask}
@@ -179,6 +217,20 @@ export default function TimelineScreen() {
         onSave={handleNoteSave}
         onDelete={editingNote ? handleNoteDelete : undefined}
       />
+
+      <CalendarModal
+        visible={calendarModalVisible}
+        selectedDate={selectedDate}
+        onClose={() => setCalendarModalVisible(false)}
+        onDateSelect={setSelectedDate}
+      />
+
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        visible={toast.visible}
+        onHide={hideToast}
+      />
     </ThemedView>
   );
 }
@@ -196,7 +248,16 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing['3xl'],
   },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: Spacing.xl,
+  },
+  calendarButton: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   loadingContainer: {
     flex: 1,

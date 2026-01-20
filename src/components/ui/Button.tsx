@@ -1,5 +1,6 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
+import Animated, { useAnimatedStyle, withSpring, useSharedValue } from 'react-native-reanimated';
 import { Colors, Typography, Radius, Spacing } from '@/constants/theme';
 
 interface ButtonProps {
@@ -11,6 +12,8 @@ interface ButtonProps {
   textStyle?: TextStyle;
 }
 
+const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
+
 export function Button({
   title,
   onPress,
@@ -19,6 +22,24 @@ export function Button({
   style,
   textStyle,
 }: ButtonProps) {
+  const scale = useSharedValue(1);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const handlePressIn = () => {
+    if (!disabled) {
+      scale.value = withSpring(0.98, { damping: 15, stiffness: 300 });
+    }
+  };
+
+  const handlePressOut = () => {
+    if (!disabled) {
+      scale.value = withSpring(1, { damping: 15, stiffness: 300 });
+    }
+  };
+
   const buttonStyle = [
     styles.button,
     variant === 'primary' && styles.primary,
@@ -38,13 +59,15 @@ export function Button({
   ];
 
   return (
-    <TouchableOpacity
-      style={buttonStyle}
+    <AnimatedTouchable
+      style={[buttonStyle, animatedStyle]}
       onPress={onPress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
       disabled={disabled}
       activeOpacity={0.8}>
       <Text style={buttonTextStyle}>{title}</Text>
-    </TouchableOpacity>
+    </AnimatedTouchable>
   );
 }
 

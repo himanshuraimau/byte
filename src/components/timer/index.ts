@@ -2,4 +2,6 @@
  * Timer Components barrel exports
  */
 
-// Components will be exported here as they are created
+export { TimerForm } from './TimerForm';
+export { TimerDisplay } from './TimerDisplay';
+export { TimerActions } from './TimerActions';

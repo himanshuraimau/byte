@@ -1,20 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Modal,
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-} from 'react-native';
-import { Colors, Typography, Spacing, Radius, Shadows } from '@/constants/theme';
+import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Slider } from '@/components/ui/Slider';
-import { Button } from '@/components/ui/Button';
+import { Colors, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import { Task } from '@/types/entities';
+import React, { useEffect, useState } from 'react';
+import {
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 
 interface TaskModalProps {
   visible: boolean;
@@ -24,11 +25,15 @@ interface TaskModalProps {
   onDelete?: () => Promise<void>;
 }
 
+const AnimatedView = Animated.createAnimatedComponent(View);
+
 export function TaskModal({ visible, task, onClose, onSave, onDelete }: TaskModalProps) {
   const [title, setTitle] = useState('');
   const [progress, setProgress] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const scale = useSharedValue(0.9);
+  const opacity = useSharedValue(0);
 
   const isEditMode = !!task;
 
@@ -43,6 +48,21 @@ export function TaskModal({ visible, task, onClose, onSave, onDelete }: TaskModa
     setError('');
   }, [task, visible]);
 
+  useEffect(() => {
+    if (visible) {
+      scale.value = withSpring(1, { damping: 15, stiffness: 300 });
+      opacity.value = withTiming(1, { duration: 200 });
+    } else {
+      scale.value = withTiming(0.9, { duration: 200 });
+      opacity.value = withTiming(0, { duration: 200 });
+    }
+  }, [visible]);
+
+  const modalStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+    opacity: opacity.value,
+  }));
+
   const handleSave = async () => {
     if (!title.trim()) {
       setError('Title is required');
@@ -53,7 +73,12 @@ export function TaskModal({ visible, task, onClose, onSave, onDelete }: TaskModa
       setLoading(true);
       setError('');
       await onSave({ title: title.trim(), progress });
+      // Reset form state
+      setTitle('');
+      setProgress(0);
+      setError('');
       onClose();
+      // Success feedback handled by parent
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save task');
     } finally {
@@ -83,12 +108,12 @@ export function TaskModal({ visible, task, onClose, onSave, onDelete }: TaskModa
       animationType="fade"
       onRequestClose={onClose}>
       <TouchableWithoutFeedback onPress={onClose}>
-        <View style={styles.overlay}>
+        <AnimatedView style={styles.overlay}>
           <TouchableWithoutFeedback>
             <KeyboardAvoidingView
               behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
               style={styles.container}>
-              <View style={styles.modal}>
+              <AnimatedView style={[styles.modal, modalStyle]}>
                 <View style={styles.header}>
                   <Text style={styles.title}>
                     {isEditMode ? 'Edit Task' : 'New Task'}
@@ -143,10 +168,10 @@ export function TaskModal({ visible, task, onClose, onSave, onDelete }: TaskModa
                     </View>
                   </View>
                 </ScrollView>
-              </View>
+              </AnimatedView>
             </KeyboardAvoidingView>
           </TouchableWithoutFeedback>
-        </View>
+        </AnimatedView>
       </TouchableWithoutFeedback>
     </Modal>
   );

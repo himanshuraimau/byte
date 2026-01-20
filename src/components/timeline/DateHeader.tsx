@@ -1,8 +1,8 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Colors, Typography, Spacing } from '@/constants/theme';
-import { DateService } from '@/services/DateService';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { Colors, Spacing, Typography } from '@/constants/theme';
+import { DateService } from '@/services/DateService';
+import React from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface DateHeaderProps {
   date: string;
@@ -12,11 +12,16 @@ interface DateHeaderProps {
 
 export function DateHeader({ date, entriesCount, onCalendarPress }: DateHeaderProps) {
   const displayText = DateService.formatDisplay(date);
+  const fullDate = DateService.formatFullDate(date);
+  const dayOfWeek = DateService.getDayOfWeek(date);
 
   return (
     <View style={styles.container}>
       <View style={styles.headerRow}>
-        <Text style={styles.dateText}>{displayText}</Text>
+        <View style={styles.titleContainer}>
+          <Text style={styles.dateText}>{displayText}</Text>
+          <Text style={styles.fullDateText}>{dayOfWeek}, {fullDate}</Text>
+        </View>
         {onCalendarPress && (
           <TouchableOpacity onPress={onCalendarPress} style={styles.calendarButton}>
             <IconSymbol name="calendar" size={24} color={Colors.text2} />
@@ -44,10 +49,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: Spacing.sm,
   },
+  titleContainer: {
+    flex: 1,
+  },
   dateText: {
     ...Typography.display,
     color: Colors.text0,
-    flex: 1,
+  },
+  fullDateText: {
+    ...Typography.small,
+    color: Colors.text2,
+    marginTop: Spacing.xs,
   },
   calendarButton: {
     padding: Spacing.sm,

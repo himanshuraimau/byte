@@ -1,5 +1,5 @@
-import { formatDateISO, parseDateISO, getTodayISO, getYesterdayISO, getTomorrowISO } from '@/utils/date';
 import { TemporalMode } from '@/types/entities';
+import { getTodayISO, getTomorrowISO, getYesterdayISO, parseDateISO } from '@/utils/date';
 
 export class DateService {
   /**
@@ -27,16 +27,16 @@ export class DateService {
     if (date === today) return 'today';
     if (date === yesterday) return 'yesterday';
     if (date === tomorrow) return 'tomorrow';
-    
+
     // For dates in the past, return 'yesterday' mode (read-only)
     // For dates in the future, return 'tomorrow' mode (planning)
     const dateObj = parseDateISO(date);
     const todayObj = parseDateISO(today);
-    
+
     if (dateObj < todayObj) {
       return 'yesterday';
     }
-    
+
     return 'tomorrow';
   }
 
@@ -85,5 +85,26 @@ export class DateService {
     const dateObj = parseDateISO(date);
     const todayObj = parseDateISO(getTodayISO());
     return dateObj > todayObj;
+  }
+
+  /**
+   * Format full date (e.g., "January 20, 2026")
+   */
+  static formatFullDate(date: string): string {
+    const dateObj = parseDateISO(date);
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const month = months[dateObj.getMonth()];
+    const day = dateObj.getDate();
+    const year = dateObj.getFullYear();
+    return `${month} ${day}, ${year}`;
+  }
+
+  /**
+   * Get day of week (e.g., "Monday")
+   */
+  static getDayOfWeek(date: string): string {
+    const dateObj = parseDateISO(date);
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    return days[dateObj.getDay()];
   }
 }

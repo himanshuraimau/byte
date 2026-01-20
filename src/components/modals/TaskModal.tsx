@@ -149,25 +149,27 @@ export function TaskModal({ visible, task, onClose, onSave, onDelete }: TaskModa
                     <Text style={styles.error}>{error}</Text>
                   ) : null}
 
-                  <View style={styles.actions}>
-                    {isEditMode && onDelete && (
-                      <Button
-                        title="DELETE"
-                        variant="destructive"
-                        onPress={handleDelete}
-                        disabled={loading}
-                        style={styles.deleteButton}
-                      />
-                    )}
-                    <View style={styles.saveButton}>
-                      <Button
-                        title={isEditMode ? 'SAVE' : 'CREATE'}
-                        onPress={handleSave}
-                        disabled={loading || !title.trim()}
-                      />
-                    </View>
-                  </View>
+
                 </ScrollView>
+
+                <View style={styles.actions}>
+                  {isEditMode && onDelete && (
+                    <Button
+                      title="DELETE"
+                      variant="destructive"
+                      onPress={handleDelete}
+                      disabled={loading}
+                      style={styles.deleteButton}
+                    />
+                  )}
+                  <View style={styles.saveButton}>
+                    <Button
+                      title={isEditMode ? 'SAVE' : 'CREATE'}
+                      onPress={handleSave}
+                      disabled={loading || !title.trim()}
+                    />
+                  </View>
+                </View>
               </AnimatedView>
             </KeyboardAvoidingView>
           </TouchableWithoutFeedback>
@@ -236,7 +238,10 @@ const styles = StyleSheet.create({
   },
   actions: {
     gap: Spacing.base,
-    marginTop: Spacing.lg,
+    padding: Spacing.xl,
+    paddingTop: Spacing.lg,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border0,
   },
   deleteButton: {
     marginBottom: Spacing.sm,

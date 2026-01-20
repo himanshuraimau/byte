@@ -1,22 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/Button';
+import { Textarea } from '@/components/ui/Textarea';
+import { Colors, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
+import { Note } from '@/types/entities';
+import React, { useEffect, useState } from 'react';
 import {
-  Modal,
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
 } from 'react-native';
-import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming } from 'react-native-reanimated';
-import { Colors, Typography, Spacing, Radius, Shadows } from '@/constants/theme';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 
 const AnimatedView = Animated.createAnimatedComponent(View);
-import { Textarea } from '@/components/ui/Textarea';
-import { Button } from '@/components/ui/Button';
-import { Note } from '@/types/entities';
 
 interface NoteModalProps {
   visible: boolean;
@@ -134,25 +134,27 @@ export function NoteModal({ visible, note, onClose, onSave, onDelete }: NoteModa
                     <Text style={styles.error}>{error}</Text>
                   ) : null}
 
-                  <View style={styles.actions}>
-                    {isEditMode && onDelete && (
-                      <Button
-                        title="DELETE"
-                        variant="destructive"
-                        onPress={handleDelete}
-                        disabled={loading}
-                        style={styles.deleteButton}
-                      />
-                    )}
-                    <View style={styles.saveButton}>
-                      <Button
-                        title={isEditMode ? 'SAVE' : 'CREATE'}
-                        onPress={handleSave}
-                        disabled={loading || !content.trim()}
-                      />
-                    </View>
-                  </View>
+
                 </ScrollView>
+
+                <View style={styles.actions}>
+                  {isEditMode && onDelete && (
+                    <Button
+                      title="DELETE"
+                      variant="destructive"
+                      onPress={handleDelete}
+                      disabled={loading}
+                      style={styles.deleteButton}
+                    />
+                  )}
+                  <View style={styles.saveButton}>
+                    <Button
+                      title={isEditMode ? 'SAVE' : 'CREATE'}
+                      onPress={handleSave}
+                      disabled={loading || !content.trim()}
+                    />
+                  </View>
+                </View>
               </AnimatedView>
             </KeyboardAvoidingView>
           </TouchableWithoutFeedback>
@@ -216,7 +218,10 @@ const styles = StyleSheet.create({
   },
   actions: {
     gap: Spacing.base,
-    marginTop: Spacing.lg,
+    padding: Spacing.xl,
+    paddingTop: Spacing.lg,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border0,
   },
   deleteButton: {
     marginBottom: Spacing.sm,

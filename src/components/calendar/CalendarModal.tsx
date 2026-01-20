@@ -1,18 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import { Colors, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
+import { parseDateISO } from '@/utils/date';
+import React, { useEffect, useState } from 'react';
 import {
   Modal,
-  View,
-  Text,
   StyleSheet,
+  Text,
   TouchableOpacity,
   TouchableWithoutFeedback,
+  View,
 } from 'react-native';
-import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming } from 'react-native-reanimated';
-import { Colors, Typography, Spacing, Radius, Shadows } from '@/constants/theme';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
+import { CalendarGrid } from './CalendarGrid';
 
 const AnimatedView = Animated.createAnimatedComponent(View);
-import { CalendarGrid } from './CalendarGrid';
-import { parseDateISO, formatDateISO } from '@/utils/date';
 
 interface CalendarModalProps {
   visible: boolean;
@@ -30,13 +30,16 @@ export function CalendarModal({ visible, selectedDate, onDateSelect, onClose }: 
 
   useEffect(() => {
     if (visible) {
+      const dateObj = parseDateISO(selectedDate);
+      setCurrentYear(dateObj.getFullYear());
+      setCurrentMonth(dateObj.getMonth());
       scale.value = withSpring(1, { damping: 15, stiffness: 300 });
       opacity.value = withTiming(1, { duration: 200 });
     } else {
       scale.value = withTiming(0.9, { duration: 200 });
       opacity.value = withTiming(0, { duration: 200 });
     }
-  }, [visible]);
+  }, [visible, selectedDate]);
 
   const modalStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -61,8 +64,8 @@ export function CalendarModal({ visible, selectedDate, onDateSelect, onClose }: 
       onRequestClose={onClose}>
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.overlay}>
-      <TouchableWithoutFeedback>
-        <AnimatedView style={[styles.modal, modalStyle]}>
+          <TouchableWithoutFeedback>
+            <AnimatedView style={[styles.modal, modalStyle]}>
               <View style={styles.header}>
                 <Text style={styles.title}>Select Date</Text>
                 <TouchableOpacity onPress={onClose} style={styles.closeButton}>

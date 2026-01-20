@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Colors, Typography, Spacing, Radius } from '@/constants/theme';
-import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
-import { Task } from '@/types/entities';
+import { Input } from '@/components/ui/Input';
 import { Config } from '@/constants/config';
+import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
+import { Task } from '@/types/entities';
+import React, { useState } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface TimerFormProps {
   onStart: (name: string, durationMinutes: number, taskId: number | null) => void;
@@ -48,7 +48,6 @@ export function TimerForm({ onStart, tasks, loading = false }: TimerFormProps) {
         value={name}
         onChangeText={setName}
         placeholder="Enter session name..."
-        autoFocus
       />
 
       <View style={styles.section}>

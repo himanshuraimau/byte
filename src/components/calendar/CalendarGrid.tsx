@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Colors, Typography, Spacing } from '@/constants/theme';
-import { CalendarDay } from './CalendarDay';
-import { formatDateISO, getTodayISO, parseDateISO } from '@/utils/date';
-import * as SQLite from 'expo-sqlite';
+import { Colors, Spacing, Typography } from '@/constants/theme';
 import { initDatabase } from '@/database/db';
 import { DayRepository } from '@/database/repositories';
+import { formatDateISO, getTodayISO, parseDateISO } from '@/utils/date';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { CalendarDay } from './CalendarDay';
 
 interface CalendarGridProps {
   year: number;
@@ -33,18 +32,18 @@ export function CalendarGrid({ year, month, selectedDate, onDateSelect, onMonthC
     try {
       const db = await initDatabase();
       const dayRepo = new DayRepository(db);
-      
+
       // Get all days with entries for this month
       const days = await dayRepo.findAllWithEntries();
       const set = new Set<string>();
-      
+
       days.forEach((day) => {
         const dayDate = parseDateISO(day.date);
         if (dayDate.getFullYear() === y && dayDate.getMonth() === m) {
           set.add(day.date);
         }
       });
-      
+
       setDaysWithEntries(set);
     } catch (error) {
       console.error('Failed to load days with entries:', error);
@@ -58,12 +57,12 @@ export function CalendarGrid({ year, month, selectedDate, onDateSelect, onMonthC
   const todayISO = getTodayISO();
 
   const days: (Date | null)[] = [];
-  
+
   // Add empty cells for days before the first day of the month
   for (let i = 0; i < firstDayOfWeek; i++) {
     days.push(null);
   }
-  
+
   // Add all days of the month
   for (let day = 1; day <= daysInMonth; day++) {
     days.push(new Date(year, month, day));
@@ -169,15 +168,16 @@ const styles = StyleSheet.create({
   dayName: {
     ...Typography.monoXs,
     color: Colors.text2,
-    width: 40,
+    flex: 1,
     textAlign: 'center',
   },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    gap: 2,
   },
   day: {
-    width: `${100 / 7}%`,
+    width: `${(100 / 7) - 0.5}%`,
     aspectRatio: 1,
     alignItems: 'center',
     justifyContent: 'center',

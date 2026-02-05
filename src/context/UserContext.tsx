@@ -1,14 +1,6 @@
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  ReactNode,
-} from "react";
-import * as SQLite from "expo-sqlite";
-import { User } from "@/types/entities";
 import { UserRepository } from "@/database/repositories/UserRepository";
-import { initDatabase } from "@/database/db";
+import { User } from "@/types/entities";
+import React, { createContext, ReactNode, useContext, useState } from "react";
 
 interface UserContextType {
   user: User | null;
@@ -22,33 +14,10 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUserState] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [db, setDb] = useState<SQLite.SQLiteDatabase | null>(null);
-  const [userRepo, setUserRepo] = useState<UserRepository | null>(null);
-
-  // Initialize database
-  useEffect(() => {
-    async function setupDatabase() {
-      try {
-        const database = await initDatabase();
-        setDb(database);
-        const repository = new UserRepository(database);
-        setUserRepo(repository);
-      } catch (error) {
-        console.error("Failed to initialize database:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    setupDatabase();
-  }, []);
+  const [loading, setLoading] = useState(false);
+  const userRepo = new UserRepository();
 
   const login = async (name: string, password: string): Promise<void> => {
-    if (!userRepo) {
-      throw new Error("Database not initialized");
-    }
-
     try {
       const loggedInUser = await userRepo.login(name, password);
       setUserState(loggedInUser);
@@ -59,10 +28,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
   };
 
   const register = async (name: string, password: string): Promise<void> => {
-    if (!userRepo) {
-      throw new Error("Database not initialized");
-    }
-
     try {
       const newUser = await userRepo.register(name, password);
       setUserState(newUser);

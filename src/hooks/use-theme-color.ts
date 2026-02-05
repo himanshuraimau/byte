@@ -3,30 +3,19 @@
  * https://docs.expo.dev/guides/color-schemes/
  */
 
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-
-// Map color names to the new color system
-const colorMap: Record<string, string> = {
-  text: Colors.text0,
-  background: Colors.bg0,
-  tint: Colors.accent0,
-  icon: Colors.text2,
-  tabIconDefault: Colors.text2,
-  tabIconSelected: Colors.accent0,
-};
+import { LightColors } from '@/constants/theme';
+import { useTheme } from '@/context/ThemeContext';
 
 export function useThemeColor(
   props: { light?: string; dark?: string },
-  colorName: string
+  colorName: keyof typeof LightColors
 ) {
-  const theme = useColorScheme() ?? 'light';
-  const colorFromProps = props[theme];
+  const { isDark, colors } = useTheme();
+  const colorFromProps = isDark ? props.dark : props.light;
 
   if (colorFromProps) {
     return colorFromProps;
   } else {
-    // Return mapped color or fallback to text0
-    return colorMap[colorName] || Colors.text0;
+    return colors[colorName];
   }
 }

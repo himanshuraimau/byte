@@ -1,4 +1,5 @@
-import { Colors, Spacing } from "@/constants/theme";
+import { Spacing } from "@/constants/theme";
+import { useTheme } from "@/context/ThemeContext";
 import { DateService } from "@/services/DateService";
 import { TemporalMode } from "@/types/entities";
 import React from "react";
@@ -15,6 +16,49 @@ export function SegmentedControl({
   selectedDate,
   onChange,
 }: SegmentedControlProps) {
+  const { colors } = useTheme();
+
+  const styles = StyleSheet.create({
+    wrapper: {
+      alignSelf: "center",
+      maxWidth: 400,
+    },
+    container: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: Spacing.base,
+    },
+    segment: {
+      paddingVertical: Spacing.md,
+      paddingHorizontal: Spacing.lg,
+      alignItems: "center",
+      justifyContent: "center",
+      minWidth: 100,
+    },
+    segmentActive: {
+      backgroundColor: colors.bg1,
+      borderRadius: 999,
+      paddingVertical: Spacing.md,
+      paddingHorizontal: Spacing.xl,
+    },
+    segmentText: {
+      fontSize: 15,
+      fontWeight: "400",
+      color: colors.text2,
+      letterSpacing: 0,
+    },
+    segmentTextActive: {
+      color: colors.text0,
+      fontWeight: "500",
+    },
+    separator: {
+      width: 1,
+      height: 16,
+      backgroundColor: colors.border0,
+    },
+  });
+
   const segments: { label: string; value: TemporalMode }[] = [
     { label: "Yesterday", value: "yesterday" },
     { label: "Today", value: "today" },
@@ -65,44 +109,3 @@ export function SegmentedControl({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  wrapper: {
-    alignSelf: "center",
-    maxWidth: 400,
-  },
-  container: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: Spacing.base,
-  },
-  segment: {
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.lg,
-    alignItems: "center",
-    justifyContent: "center",
-    minWidth: 100,
-  },
-  segmentActive: {
-    backgroundColor: Colors.bg1,
-    borderRadius: 999,
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.xl,
-  },
-  segmentText: {
-    fontSize: 15,
-    fontWeight: "400",
-    color: Colors.text2,
-    letterSpacing: 0,
-  },
-  segmentTextActive: {
-    color: Colors.text0,
-    fontWeight: "500",
-  },
-  separator: {
-    width: 1,
-    height: 16,
-    backgroundColor: Colors.border0,
-  },
-});

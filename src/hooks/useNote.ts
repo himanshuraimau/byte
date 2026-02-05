@@ -1,77 +1,68 @@
-import { useState, useCallback } from 'react';
-import * as SQLite from 'expo-sqlite';
-import { Note } from '@/types/entities';
-import { initDatabase } from '@/database/db';
-import { DayRepository, NoteRepository } from '@/database/repositories';
-import { useDate } from '@/context/DateContext';
-import { useTimeline } from '@/context/TimelineContext';
+import { useDate } from "@/context/DateContext";
+import { useTimeline } from "@/context/TimelineContext";
+import { useUser } from "@/context/UserContext";
+import { DayRepository, NoteRepository } from "@/database/repositories";
+import { useState } from "react";
 
 export function useNote() {
-  const [loading, setLoading] = useState(false);
+  const { user } = useUser();
   const { selectedDate } = useDate();
   const { refreshTimeline } = useTimeline();
+  const [loading, setLoading] = useState(false);
 
-  const createNote = useCallback(
-    async (content: string): Promise<Note> => {
+  const createNote = async (content: string) => {
+    if (!user) throw new Error("User not authenticated");
+    
+    try {
       setLoading(true);
-      try {
-        const db = await initDatabase();
-        const dayRepo = new DayRepository(db);
-        const noteRepo = new NoteRepository(db);
+      const dayRepo = new DayRepository();
+      const noteRepo = new NoteRepository();
+      
+      // Get or create day
+      const day = await dayRepo.getOrCreate(user.id, selectedDate);
+      
+      // Create note
+      await noteRepo.create(day.id, content);
+      
+      // Refresh timeline
+      await refreshTimeline(selectedDate);
+    } catch (error) {
+      console.error("Failed to create note:", error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        const day = await dayRepo.createOrGet(selectedDate);
-        const note = await noteRepo.create(day.id, content);
-
-        await refreshTimeline(selectedDate);
-        return note;
-      } catch (error) {
-        console.error('Failed to create note:', error);
-        throw error;
-      } finally {
-        setLoading(false);
-      }
-    },
-    [selectedDate, refreshTimeline]
-  );
-
-  const updateNote = useCallback(
-    async (noteId: number, content: string): Promise<Note> => {
+  const updateNote = async (noteId: string, content: string) => {
+    try {
       setLoading(true);
-      try {
-        const db = await initDatabase();
-        const noteRepo = new NoteRepository(db);
+      const noteRepo = new NoteRepository();
+      
+      await noteRepo.update(noteId, content);
+      await refreshTimeline(selectedDate);
+    } catch (error) {
+      console.error("Failed to update note:", error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        const note = await noteRepo.update(noteId, content);
-        await refreshTimeline(selectedDate);
-        return note;
-      } catch (error) {
-        console.error('Failed to update note:', error);
-        throw error;
-      } finally {
-        setLoading(false);
-      }
-    },
-    [selectedDate, refreshTimeline]
-  );
-
-  const deleteNote = useCallback(
-    async (noteId: number): Promise<void> => {
+  const deleteNote = async (noteId: string) => {
+    try {
       setLoading(true);
-      try {
-        const db = await initDatabase();
-        const noteRepo = new NoteRepository(db);
-
-        await noteRepo.delete(noteId);
-        await refreshTimeline(selectedDate);
-      } catch (error) {
-        console.error('Failed to delete note:', error);
-        throw error;
-      } finally {
-        setLoading(false);
-      }
-    },
-    [selectedDate, refreshTimeline]
-  );
+      const noteRepo = new NoteRepository();
+      
+      await noteRepo.delete(noteId);
+      await refreshTimeline(selectedDate);
+    } catch (error) {
+      console.error("Failed to delete note:", error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return {
     createNote,

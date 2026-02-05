@@ -1,4 +1,3 @@
-import { initDatabase } from "@/database/db";
 import {
     DayRepository,
     NoteRepository,
@@ -7,7 +6,6 @@ import {
 } from "@/database/repositories";
 import { TimelineService } from "@/services/TimelineService";
 import { TimelineEntry } from "@/types/entities";
-import * as SQLite from "expo-sqlite";
 import React, {
     createContext,
     ReactNode,
@@ -43,52 +41,33 @@ export function TimelineProvider({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [entriesCount, setEntriesCount] = useState(0);
-  const [db, setDb] = useState<SQLite.SQLiteDatabase | null>(null);
-  const [timelineService, setTimelineService] =
-    useState<TimelineService | null>(null);
 
-  // Initialize database and services
+  // Initialize services
+  const dayRepo = new DayRepository();
+  const taskRepo = new TaskRepository();
+  const noteRepo = new NoteRepository();
+  const sessionRepo = new SessionRepository();
+  const timelineService = new TimelineService(
+    dayRepo,
+    taskRepo,
+    noteRepo,
+    sessionRepo,
+  );
+
+  // Refresh timeline when date changes
   useEffect(() => {
-    async function init() {
-      try {
-        const database = await initDatabase();
-        setDb(database);
-
-        const dayRepo = new DayRepository(database);
-        const taskRepo = new TaskRepository(database);
-        const noteRepo = new NoteRepository(database);
-        const sessionRepo = new SessionRepository(database);
-
-        const service = new TimelineService(
-          dayRepo,
-          taskRepo,
-          noteRepo,
-          sessionRepo,
-        );
-        setTimelineService(service);
-      } catch (err) {
-        setError(err as Error);
-        console.error("Failed to initialize timeline:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    init();
-  }, []);
-
-  // Refresh timeline when date changes or timelineService becomes available
-  useEffect(() => {
-    if (timelineService) {
+    if (user) {
       refreshTimeline(selectedDate).catch((err) => {
         console.error("Failed to refresh timeline in useEffect:", err);
       });
+    } else {
+      setLoading(false);
     }
-  }, [selectedDate, timelineService]);
+  }, [selectedDate, user]);
 
   const refreshTimeline = async (date: string) => {
-    if (!timelineService || !db || !user) {
-      console.log("Timeline service, database, or user not ready yet");
+    if (!user) {
+      console.log("User not ready yet");
       return;
     }
 

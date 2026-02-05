@@ -1,4 +1,5 @@
-import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
+import { Radius, Spacing, Typography } from '@/constants/theme';
+import { useTheme } from '@/context/ThemeContext';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
@@ -22,6 +23,7 @@ export function TimelineDay({
     onPress,
     showMonthLabel = false,
 }: TimelineDayProps) {
+    const { colors, isDark } = useTheme();
     const scale = useSharedValue(1);
     const dayNumber = date.getDate();
     const weekday = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'][date.getDay()];
@@ -40,6 +42,70 @@ export function TimelineDay({
         scale.value = withSpring(1, { damping: 15, stiffness: 400 });
         onPress();
     };
+
+    const selectedTextColor = isDark ? colors.text0 : colors.bg0;
+
+    const styles = StyleSheet.create({
+        container: {
+            width: DAY_WIDTH,
+        },
+        dayContainer: {
+            width: DAY_WIDTH,
+            height: 100,
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingVertical: Spacing.base,
+            paddingHorizontal: Spacing.sm,
+            position: 'relative',
+        },
+        daySelected: {
+            backgroundColor: colors.accent0,
+            borderRadius: Radius.sm,
+        },
+        monthLabel: {
+            ...Typography.monoXs,
+            color: colors.text2,
+            position: 'absolute',
+            top: 4,
+            textTransform: 'uppercase',
+            fontSize: 9,
+        },
+        weekday: {
+            ...Typography.monoXs,
+            color: colors.text2,
+            marginBottom: Spacing.xs,
+            textTransform: 'uppercase',
+        },
+        dateNumber: {
+            ...Typography.display,
+            color: colors.text0,
+            fontSize: 32,
+            lineHeight: 36,
+        },
+        dateNumberToday: {
+            fontWeight: '700',
+            color: colors.accent0,
+        },
+        dateNumberSelected: {
+            color: selectedTextColor,
+        },
+        todayUnderline: {
+            position: 'absolute',
+            bottom: 12,
+            width: 32,
+            height: 3,
+            backgroundColor: colors.accent0,
+            borderRadius: 2,
+        },
+        entryDot: {
+            position: 'absolute',
+            bottom: 8,
+            width: 4,
+            height: 4,
+            borderRadius: 2,
+            backgroundColor: colors.accent0,
+        },
+    });
 
     return (
         <Animated.View style={[styles.container, animatedStyle]}>
@@ -80,65 +146,3 @@ export function TimelineDay({
         </Animated.View>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        width: DAY_WIDTH,
-    },
-    dayContainer: {
-        width: DAY_WIDTH,
-        height: 100,
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: Spacing.base,
-        paddingHorizontal: Spacing.sm,
-        position: 'relative',
-    },
-    daySelected: {
-        backgroundColor: Colors.accent0,
-        borderRadius: Radius.sm,
-    },
-    monthLabel: {
-        ...Typography.monoXs,
-        color: Colors.text2,
-        position: 'absolute',
-        top: 4,
-        textTransform: 'uppercase',
-        fontSize: 9,
-    },
-    weekday: {
-        ...Typography.monoXs,
-        color: Colors.text2,
-        marginBottom: Spacing.xs,
-        textTransform: 'uppercase',
-    },
-    dateNumber: {
-        ...Typography.display,
-        color: Colors.text0,
-        fontSize: 32,
-        lineHeight: 36,
-    },
-    dateNumberToday: {
-        fontWeight: '700',
-        color: Colors.accent0,
-    },
-    dateNumberSelected: {
-        color: Colors.bg0,
-    },
-    todayUnderline: {
-        position: 'absolute',
-        bottom: 12,
-        width: 32,
-        height: 3,
-        backgroundColor: Colors.accent0,
-        borderRadius: 2,
-    },
-    entryDot: {
-        position: 'absolute',
-        bottom: 8,
-        width: 4,
-        height: 4,
-        borderRadius: 2,
-        backgroundColor: Colors.accent0,
-    },
-});

@@ -17,16 +17,16 @@ export class TimelineService {
    */
   async getTimelineEntries(
     date: string,
-    userId: number,
+    userId: string,
   ): Promise<TimelineEntry[]> {
     // Get or create day
-    const day = await this.dayRepo.createOrGet(date, userId);
+    const day = await this.dayRepo.getOrCreate(userId, date);
 
     // Fetch all entries
     const [tasks, notes, sessions] = await Promise.all([
-      this.taskRepo.findByDayId(day.id),
-      this.noteRepo.findByDayId(day.id),
-      this.sessionRepo.findByDayId(day.id),
+      this.taskRepo.getByDayId(day.id),
+      this.noteRepo.getByDayId(day.id),
+      this.sessionRepo.getByDayId(day.id),
     ]);
 
     // Combine and sort by creation time
@@ -52,16 +52,13 @@ export class TimelineService {
   /**
    * Get entries count for a date
    */
-  async getEntriesCount(date: string, userId: number): Promise<number> {
-    const day = await this.dayRepo.findByDate(date, userId);
-    if (!day) {
-      return 0;
-    }
+  async getEntriesCount(date: string, userId: string): Promise<number> {
+    const day = await this.dayRepo.getOrCreate(userId, date);
 
     const [tasks, notes, sessions] = await Promise.all([
-      this.taskRepo.findByDayId(day.id),
-      this.noteRepo.findByDayId(day.id),
-      this.sessionRepo.findByDayId(day.id),
+      this.taskRepo.getByDayId(day.id),
+      this.noteRepo.getByDayId(day.id),
+      this.sessionRepo.getByDayId(day.id),
     ]);
 
     return tasks.length + notes.length + sessions.length;
@@ -70,7 +67,7 @@ export class TimelineService {
   /**
    * Check if a date has any entries
    */
-  async hasEntries(date: string, userId: number): Promise<boolean> {
+  async hasEntries(date: string, userId: string): Promise<boolean> {
     const count = await this.getEntriesCount(date, userId);
     return count > 0;
   }

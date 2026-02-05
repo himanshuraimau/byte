@@ -1,12 +1,12 @@
 import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Textarea";
 import {
-    Colors,
     Radius,
     Shadows,
     Spacing,
     Typography,
 } from "@/constants/theme";
+import { useTheme } from "@/context/ThemeContext";
 import { Note } from "@/types/entities";
 import React, { useEffect, useState } from "react";
 import {
@@ -44,6 +44,7 @@ export function NoteModal({
   onSave,
   onDelete,
 }: NoteModalProps) {
+  const { colors } = useTheme();
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -111,6 +112,75 @@ export function NoteModal({
       setLoading(false);
     }
   };
+
+  const styles = StyleSheet.create({
+    overlay: {
+      flex: 1,
+      backgroundColor: "rgba(0, 0, 0, 0.4)",
+      justifyContent: "center",
+      alignItems: "center",
+      padding: Spacing.xl,
+    },
+    container: {
+      width: "100%",
+      maxWidth: 400,
+    },
+    modal: {
+      backgroundColor: colors.bg0,
+      borderRadius: Radius.lg,
+      ...Shadows.z3,
+      maxHeight: "85%",
+      minHeight: "60%",
+    },
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: Spacing.xl,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border0,
+    },
+    title: {
+      ...Typography.h2,
+      color: colors.text0,
+    },
+    closeButton: {
+      width: 32,
+      height: 32,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    closeText: {
+      ...Typography.h2,
+      color: colors.text2,
+    },
+    content: {
+      padding: Spacing.xl,
+      paddingTop: Spacing["2xl"],
+    },
+    textarea: {
+      minHeight: 300,
+      marginBottom: Spacing.xl,
+    },
+    error: {
+      ...Typography.small,
+      color: colors.destructive,
+      marginBottom: Spacing.base,
+    },
+    actions: {
+      gap: Spacing.base,
+      padding: Spacing.xl,
+      paddingTop: Spacing.lg,
+      borderTopWidth: 1,
+      borderTopColor: colors.border0,
+    },
+    deleteButton: {
+      marginBottom: Spacing.sm,
+    },
+    saveButton: {
+      width: "100%",
+    },
+  });
 
   return (
     <Modal
@@ -184,72 +254,3 @@ export function NoteModal({
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.4)",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: Spacing.xl,
-  },
-  container: {
-    width: "100%",
-    maxWidth: 400,
-  },
-  modal: {
-    backgroundColor: Colors.bg0,
-    borderRadius: Radius.lg,
-    ...Shadows.z3,
-    maxHeight: "85%",
-    minHeight: "60%",
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: Spacing.xl,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border0,
-  },
-  title: {
-    ...Typography.h2,
-    color: Colors.text0,
-  },
-  closeButton: {
-    width: 32,
-    height: 32,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  closeText: {
-    ...Typography.h2,
-    color: Colors.text2,
-  },
-  content: {
-    padding: Spacing.xl,
-    paddingTop: Spacing["2xl"],
-  },
-  textarea: {
-    minHeight: 300,
-    marginBottom: Spacing.xl,
-  },
-  error: {
-    ...Typography.small,
-    color: Colors.destructive,
-    marginBottom: Spacing.base,
-  },
-  actions: {
-    gap: Spacing.base,
-    padding: Spacing.xl,
-    paddingTop: Spacing.lg,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border0,
-  },
-  deleteButton: {
-    marginBottom: Spacing.sm,
-  },
-  saveButton: {
-    width: "100%",
-  },
-});

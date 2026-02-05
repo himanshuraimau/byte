@@ -1,100 +1,112 @@
-import * as SQLite from 'expo-sqlite';
-import { Note } from '@/types/entities';
+import { db, docToEntity, generateId } from "@/database/db";
+import { COLLECTIONS } from "@/database/firebase.config";
+import { Note } from "@/types/entities";
+import {
+    collection,
+    deleteDoc,
+    doc,
+    getDoc,
+    getDocs,
+    query,
+    setDoc,
+    Timestamp,
+    updateDoc,
+    where
+} from "firebase/firestore";
 
 export class NoteRepository {
-  private db: SQLite.SQLiteDatabase;
-
-  constructor(db: SQLite.SQLiteDatabase) {
-    this.db = db;
-  }
+  private collectionRef = collection(db, COLLECTIONS.NOTES);
 
   /**
    * Create a new note
    */
-  async create(dayId: number, content: string): Promise<Note> {
-    const result = await this.db.runAsync(
-      'INSERT INTO notes (day_id, content) VALUES (?, ?)',
-      [dayId, content]
-    );
-
-    if (result.lastInsertRowId) {
-      const note = await this.findById(result.lastInsertRowId);
-      if (note) {
-        return note;
-      }
-      throw new Error('Failed to retrieve created note');
-    }
-
-    throw new Error('Failed to create note');
-  }
-
-  /**
-   * Find note by ID
-   */
-  async findById(id: number): Promise<Note | null> {
-    const result = await this.db.getFirstAsync<{
-      id: number;
-      day_id: number;
-      content: string;
-      created_at: number;
-      updated_at: number;
-    }>('SELECT * FROM notes WHERE id = ?', [id]);
-
-    if (result) {
-      return {
-        id: result.id,
-        day_id: result.day_id,
-        content: result.content,
-        created_at: result.created_at,
-        updated_at: result.updated_at,
+  async create(dayId: string, content: string): Promise<Note> {
+    try {
+      const noteId = generateId();
+      const noteData = {
+        day_id: dayId,
+        content,
+        created_at: Timestamp.now(),
+        updated_at: Timestamp.now(),
       };
+
+      await setDoc(doc(this.collectionRef, noteId), noteData);
+      
+      return docToEntity<Note>({ id: noteId }, noteData);
+    } catch (error: any) {
+      console.error("Create note error:", error);
+      throw error;
     }
-
-    return null;
   }
 
   /**
-   * Find all notes for a specific day
+   * Get note by ID
    */
-  async findByDayId(dayId: number): Promise<Note[]> {
-    const result = await this.db.getAllAsync<{
-      id: number;
-      day_id: number;
-      content: string;
-      created_at: number;
-      updated_at: number;
-    }>('SELECT * FROM notes WHERE day_id = ? ORDER BY created_at ASC', [dayId]);
+  async getById(id: string): Promise<Note | null> {
+    try {
+      const docRef = doc(this.collectionRef, id);
+      const docSnap = await getDoc(docRef);
 
-    return result.map((row) => ({
-      id: row.id,
-      day_id: row.day_id,
-      content: row.content,
-      created_at: row.created_at,
-      updated_at: row.updated_at,
-    }));
-  }
+      if (!docSnap.exists()) {
+        return null;
+      }
 
-  /**
-   * Update note content
-   */
-  async update(id: number, content: string): Promise<Note> {
-    await this.db.runAsync(
-      'UPDATE notes SET content = ?, updated_at = strftime(\'%s\', \'now\') WHERE id = ?',
-      [content, id]
-    );
-
-    const note = await this.findById(id);
-    if (!note) {
-      throw new Error('Failed to retrieve updated note');
+      return docToEntity<Note>(docSnap, docSnap.data());
+    } catch (error: any) {
+      console.error("Get note by ID error:", error);
+      return null;
     }
-
-    return note;
   }
 
   /**
-   * Delete a note
+   * Get all notes for a day
    */
-  async delete(id: number): Promise<void> {
-    await this.db.runAsync('DELETE FROM notes WHERE id = ?', [id]);
+  async getByDayId(dayId: string): Promise<Note[]> {
+    try {
+      const q = query(this.collectionRef, where("day_id", "==", dayId));
+      const snapshot = await getDocs(q);
+
+      return snapshot.docs.map(doc => docToEntity<Note>(doc, doc.data()));
+    } catch (error: any) {
+      console.error("Get notes by day ID error:", error);
+      return [];
+    }
+  }
+
+  /**
+   * Update note
+   */
+  async update(id: string, content: string): Promise<Note> {
+    try {
+      const docRef = doc(this.collectionRef, id);
+      const docSnap = await getDoc(docRef);
+
+      if (!docSnap.exists()) {
+        throw new Error("Note not found");
+      }
+
+      await updateDoc(docRef, {
+        content,
+        updated_at: Timestamp.now(),
+      });
+
+      const updatedDoc = await getDoc(docRef);
+      return docToEntity<Note>(updatedDoc, updatedDoc.data());
+    } catch (error: any) {
+      console.error("Update note error:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete note
+   */
+  async delete(id: string): Promise<void> {
+    try {
+      await deleteDoc(doc(this.collectionRef, id));
+    } catch (error: any) {
+      console.error("Delete note error:", error);
+      throw error;
+    }
   }
 }

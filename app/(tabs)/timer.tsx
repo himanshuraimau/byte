@@ -1,16 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, View, ActivityIndicator } from 'react-native';
-import { ThemedView } from '@/components/ui/themed-view';
-import { Colors, Spacing } from '@/constants/theme';
-import { useTimer } from '@/context/TimerContext';
-import { useSession } from '@/hooks/useSession';
-import { useToast } from '@/hooks/useToast';
-import { useDate } from '@/context/DateContext';
-import { TimerForm, TimerDisplay, TimerActions } from '@/components/timer';
-import { Toast } from '@/components/ui/Toast';
-import * as Haptics from 'expo-haptics';
+import { TimerActions, TimerDisplay, TimerForm } from "@/components/timer";
+import { ThemedView } from "@/components/ui/themed-view";
+import { Toast } from "@/components/ui/Toast";
+import { Spacing } from "@/constants/theme";
+import { useDate } from "@/context/DateContext";
+import { useTheme } from "@/context/ThemeContext";
+import { useTimer } from "@/context/TimerContext";
+import { useSession } from "@/hooks/useSession";
+import { useTask } from "@/hooks/useTask";
+import { useToast } from "@/hooks/useToast";
+import * as Haptics from "expo-haptics";
+import React, { useEffect, useState } from "react";
+import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 
 export default function TimerScreen() {
+  const { colors } = useTheme();
   const {
     activeSession,
     isRunning,
@@ -20,7 +23,8 @@ export default function TimerScreen() {
     completeTimer,
     cancelTimer,
   } = useTimer();
-  const { createSession, completeSession, getTasksForDay, loading } = useSession();
+  const { createSession, completeSession, loading } = useSession();
+  const { getTasksForDay } = useTask();
   const { toast, showToast, hideToast } = useToast();
   const { selectedDate } = useDate();
   const [tasks, setTasks] = useState<any[]>([]);
@@ -36,20 +40,30 @@ export default function TimerScreen() {
       const dayTasks = await getTasksForDay(selectedDate);
       setTasks(dayTasks);
     } catch (error) {
-      console.error('Failed to load tasks:', error);
-      showToast('Failed to load tasks', 'error');
+      console.error("Failed to load tasks:", error);
+      showToast("Failed to load tasks", "error");
     } finally {
       setLoadingTasks(false);
     }
   };
 
-  const handleStart = async (name: string, durationMinutes: number, taskId: number | null) => {
+  const handleStart = async (
+    name: string,
+    durationMinutes: number,
+    taskId: string | null,
+  ) => {
     try {
-      const session = await createSession(name, durationMinutes, taskId);
+      const startedAt = Date.now();
+      const session = await createSession(
+        name,
+        durationMinutes,
+        startedAt,
+        taskId,
+      );
       startTimer(session);
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     } catch (error) {
-      console.error('Failed to start timer:', error);
+      console.error("Failed to start timer:", error);
     }
   };
 
@@ -57,13 +71,14 @@ export default function TimerScreen() {
     if (!activeSession) return;
 
     try {
-      await completeSession(activeSession.id);
+      const endedAt = Date.now();
+      await completeSession(activeSession.id, endedAt);
       await completeTimer();
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      showToast('Session completed and logged!', 'success');
+      showToast("Session completed and logged!", "success");
     } catch (error) {
-      console.error('Failed to complete session:', error);
-      showToast('Failed to complete session', 'error');
+      console.error("Failed to complete session:", error);
+      showToast("Failed to complete session", "error");
     }
   };
 
@@ -75,7 +90,7 @@ export default function TimerScreen() {
     return (
       <ThemedView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={Colors.accent0} />
+          <ActivityIndicator size="large" color={colors.accent0} />
         </View>
       </ThemedView>
     );
@@ -86,7 +101,8 @@ export default function TimerScreen() {
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}>
+        showsVerticalScrollIndicator={false}
+      >
         {isRunning && activeSession ? (
           <View style={styles.activeContainer}>
             <TimerDisplay
@@ -103,11 +119,7 @@ export default function TimerScreen() {
           </View>
         ) : (
           <View style={styles.formContainer}>
-            <TimerForm
-              onStart={handleStart}
-              tasks={tasks}
-              loading={loading}
-            />
+            <TimerForm onStart={handleStart} tasks={tasks} loading={loading} />
           </View>
         )}
       </ScrollView>
@@ -125,33 +137,33 @@ export default function TimerScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.bg1,
+    
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
     padding: Spacing.xl,
-    paddingBottom: Spacing['3xl'],
+    paddingBottom: Spacing["3xl"],
     flexGrow: 1,
   },
   loadingContainer: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   activeContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: Spacing['2xl'],
+    justifyContent: "center",
+    alignItems: "center",
+    gap: Spacing["2xl"],
     minHeight: 400,
   },
   formContainer: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
     maxWidth: 400,
-    width: '100%',
-    alignSelf: 'center',
+    width: "100%",
+    alignSelf: "center",
   },
 });

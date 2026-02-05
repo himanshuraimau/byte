@@ -1,119 +1,191 @@
+import { db, docToEntity, generateId } from "@/database/db";
+import { COLLECTIONS } from "@/database/firebase.config";
 import { Day } from "@/types/entities";
-import * as SQLite from "expo-sqlite";
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  setDoc,
+  Timestamp,
+  where
+} from "firebase/firestore";
 
 export class DayRepository {
-  private db: SQLite.SQLiteDatabase;
-
-  constructor(db: SQLite.SQLiteDatabase) {
-    this.db = db;
-  }
+  private collectionRef = collection(db, COLLECTIONS.DAYS);
 
   /**
-   * Create or get a day by date (ISO 8601: YYYY-MM-DD) for a specific user
+   * Get or create a day for a user
    */
-  async createOrGet(date: string, userId: number): Promise<Day> {
-    // Try to get existing day first
-    const existing = await this.findByDate(date, userId);
-    if (existing) {
-      return existing;
-    }
+  async getOrCreate(userId: string, date: string): Promise<Day> {
+    try {
+      // Check if day already exists
+      const q = query(
+        this.collectionRef, 
+        where("user_id", "==", userId),
+        where("date", "==", date)
+      );
+      const snapshot = await getDocs(q);
 
-    // Create new day
-    const result = await this.db.runAsync(
-      "INSERT INTO days (date, user_id) VALUES (?, ?)",
-      [date, userId],
-    );
-
-    if (result.lastInsertRowId) {
-      const day = await this.findById(result.lastInsertRowId);
-      if (day) {
-        return day;
+      if (!snapshot.empty) {
+        const dayDoc = snapshot.docs[0];
+        return docToEntity<Day>(dayDoc, dayDoc.data());
       }
-      throw new Error("Failed to retrieve created day");
-    }
 
-    throw new Error("Failed to create day");
-  }
-
-  /**
-   * Find day by ID
-   */
-  async findById(id: number): Promise<Day | null> {
-    const result = await this.db.getFirstAsync<{
-      id: number;
-      date: string;
-      user_id: number;
-      created_at: number;
-    }>("SELECT * FROM days WHERE id = ?", [id]);
-
-    if (result) {
-      return {
-        id: result.id,
-        date: result.date,
-        user_id: result.user_id,
-        created_at: result.created_at,
+      // Create new day
+      const dayId = generateId();
+      const dayData = {
+        user_id: userId,
+        date,
+        created_at: Timestamp.now(),
       };
+
+      await setDoc(doc(this.collectionRef, dayId), dayData);
+      
+      return docToEntity<Day>({ id: dayId }, dayData);
+    } catch (error: any) {
+      console.error("Get or create day error:", error);
+      throw error;
     }
-
-    return null;
   }
 
   /**
-   * Find day by date (ISO 8601: YYYY-MM-DD) for a specific user
+   * Get day by ID
    */
-  async findByDate(date: string, userId: number): Promise<Day | null> {
-    const result = await this.db.getFirstAsync<{
-      id: number;
-      date: string;
-      user_id: number;
-      created_at: number;
-    }>("SELECT * FROM days WHERE date = ? AND user_id = ?", [date, userId]);
+  async getById(id: string): Promise<Day | null> {
+    try {
+      const docRef = doc(this.collectionRef, id);
+      const docSnap = await getDoc(docRef);
 
-    if (result) {
-      return {
-        id: result.id,
-        date: result.date,
-        user_id: result.user_id,
-        created_at: result.created_at,
-      };
+      if (!docSnap.exists()) {
+        return null;
+      }
+
+      return docToEntity<Day>(docSnap, docSnap.data());
+    } catch (error: any) {
+      console.error("Get day by ID error:", error);
+      return null;
     }
-
-    return null;
   }
 
   /**
-   * Get all days with entries (has tasks, notes, or sessions) for a specific user
+   * Get all days for a user
    */
-  async findAllWithEntries(userId: number): Promise<Day[]> {
-    const result = await this.db.getAllAsync<{
-      id: number;
-      date: string;
-      user_id: number;
-      created_at: number;
-    }>(
-      `
-      SELECT DISTINCT d.* FROM days d
-      LEFT JOIN tasks t ON d.id = t.day_id
-      LEFT JOIN notes n ON d.id = n.day_id
-      LEFT JOIN sessions s ON d.id = s.day_id
-      WHERE d.user_id = ? AND (t.id IS NOT NULL OR n.id IS NOT NULL OR s.id IS NOT NULL)
-      ORDER BY d.date DESC
-    `,
-      [userId],
-    );
+  async getByUserId(userId: string): Promise<Day[]> {
+    try {
+      const q = query(this.collectionRef, where("user_id", "==", userId));
+      const snapshot = await getDocs(q);
 
-    return result.map((row) => ({
-      id: row.id,
-      date: row.date,
-      user_id: row.user_id,
-      created_at: row.created_at,
-    }));
+      return snapshot.docs.map(doc => docToEntity<Day>(doc, doc.data()));
+    } catch (error: any) {
+      console.error("Get days by user ID error:", error);
+      return [];
+    }
   }
 
   /**
-   * Delete a day (cascades to tasks, notes, sessions)
+   * Get all days that have entries (tasks, notes, or sessions) for a user
    */
-  async delete(id: number): Promise<void> {
-    await this.db.runAsync("DELETE FROM days WHERE id = ?", [id]);
+  async findAllWithEntries(userId: string): Promise<Day[]> {
+    try {
+      // Get all days for the user
+      const days = await this.getByUserId(userId);
+      
+      if (days.length === 0) return [];
+
+      // Get all day IDs
+      const dayIds = days.map(day => day.id);
+
+      // Check which days have tasks, notes, or sessions
+      const tasksQuery = query(
+        collection(db, COLLECTIONS.TASKS),
+        where("day_id", "in", dayIds.slice(0, 10)) // Firestore 'in' has limit of 10
+      );
+      const notesQuery = query(
+        collection(db, COLLECTIONS.NOTES),
+        where("day_id", "in", dayIds.slice(0, 10))
+      );
+      const sessionsQuery = query(
+        collection(db, COLLECTIONS.SESSIONS),
+        where("day_id", "in", dayIds.slice(0, 10))
+      );
+
+      const [tasksSnap, notesSnap, sessionsSnap] = await Promise.all([
+        getDocs(tasksQuery),
+        getDocs(notesQuery),
+        getDocs(sessionsQuery),
+      ]);
+
+      // Collect unique day IDs that have entries
+      const dayIdsWithEntries = new Set<string>();
+      tasksSnap.docs.forEach(doc => dayIdsWithEntries.add(doc.data().day_id));
+      notesSnap.docs.forEach(doc => dayIdsWithEntries.add(doc.data().day_id));
+      sessionsSnap.docs.forEach(doc => dayIdsWithEntries.add(doc.data().day_id));
+
+      // Filter days to only those with entries
+      return days.filter(day => dayIdsWithEntries.has(day.id));
+    } catch (error: any) {
+      console.error("Find days with entries error:", error);
+      return [];
+    }
+  }
+
+  /**
+   * Get days for a user within a date range
+   */
+  async getByDateRange(
+    userId: string,
+    startDate: string,
+    endDate: string
+  ): Promise<Day[]> {
+    try {
+      const q = query(
+        this.collectionRef,
+        where("user_id", "==", userId),
+        where("date", ">=", startDate),
+        where("date", "<=", endDate)
+      );
+      const snapshot = await getDocs(q);
+
+      return snapshot.docs.map(doc => docToEntity<Day>(doc, doc.data()));
+    } catch (error: any) {
+      console.error("Get days by date range error:", error);
+      return [];
+    }
+  }
+
+  /**
+   * Delete a day and all associated data
+   */
+  async delete(id: string): Promise<void> {
+    try {
+      // Delete all associated tasks, notes, and sessions
+      const tasksQuery = query(collection(db, COLLECTIONS.TASKS), where("day_id", "==", id));
+      const notesQuery = query(collection(db, COLLECTIONS.NOTES), where("day_id", "==", id));
+      const sessionsQuery = query(collection(db, COLLECTIONS.SESSIONS), where("day_id", "==", id));
+
+      const [tasksSnap, notesSnap, sessionsSnap] = await Promise.all([
+        getDocs(tasksQuery),
+        getDocs(notesQuery),
+        getDocs(sessionsQuery),
+      ]);
+
+      // Delete all related documents
+      const deletePromises = [
+        ...tasksSnap.docs.map(d => deleteDoc(d.ref)),
+        ...notesSnap.docs.map(d => deleteDoc(d.ref)),
+        ...sessionsSnap.docs.map(d => deleteDoc(d.ref)),
+      ];
+
+      await Promise.all(deletePromises);
+
+      // Delete the day
+      await deleteDoc(doc(this.collectionRef, id));
+    } catch (error: any) {
+      console.error("Delete day error:", error);
+      throw error;
+    }
   }
 }

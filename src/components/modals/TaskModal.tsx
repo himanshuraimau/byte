@@ -2,12 +2,12 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Slider } from "@/components/ui/Slider";
 import {
-    Colors,
     Radius,
     Shadows,
     Spacing,
     Typography,
 } from "@/constants/theme";
+import { useTheme } from "@/context/ThemeContext";
 import { Task } from "@/types/entities";
 import React, { useEffect, useState } from "react";
 import {
@@ -45,6 +45,7 @@ export function TaskModal({
   onSave,
   onDelete,
 }: TaskModalProps) {
+  const { colors } = useTheme();
   const [title, setTitle] = useState("");
   const [progress, setProgress] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -117,6 +118,79 @@ export function TaskModal({
       setLoading(false);
     }
   };
+
+  const styles = StyleSheet.create({
+    overlay: {
+      flex: 1,
+      backgroundColor: "rgba(0, 0, 0, 0.4)",
+      justifyContent: "center",
+      alignItems: "center",
+      padding: Spacing.xl,
+    },
+    container: {
+      width: "100%",
+      maxWidth: 400,
+    },
+    modal: {
+      backgroundColor: colors.bg0,
+      borderRadius: Radius.lg,
+      ...Shadows.z3,
+      maxHeight: "85%",
+    },
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: Spacing.xl,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border0,
+    },
+    title: {
+      ...Typography.h2,
+      color: colors.text0,
+    },
+    closeButton: {
+      width: 32,
+      height: 32,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    closeText: {
+      ...Typography.h2,
+      color: colors.text2,
+    },
+    content: {
+      padding: Spacing.xl,
+      paddingTop: Spacing["2xl"],
+    },
+    sliderContainer: {
+      marginBottom: Spacing.xl,
+    },
+    sliderLabel: {
+      ...Typography.monoSm,
+      color: colors.text1,
+      marginBottom: Spacing.sm,
+      textTransform: "uppercase",
+    },
+    error: {
+      ...Typography.small,
+      color: colors.destructive,
+      marginBottom: Spacing.base,
+    },
+    actions: {
+      gap: Spacing.base,
+      padding: Spacing.xl,
+      paddingTop: Spacing.lg,
+      borderTopWidth: 1,
+      borderTopColor: colors.border0,
+    },
+    deleteButton: {
+      marginBottom: Spacing.sm,
+    },
+    saveButton: {
+      width: "100%",
+    },
+  });
 
   return (
     <Modal
@@ -199,76 +273,3 @@ export function TaskModal({
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.4)",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: Spacing.xl,
-  },
-  container: {
-    width: "100%",
-    maxWidth: 400,
-  },
-  modal: {
-    backgroundColor: Colors.bg0,
-    borderRadius: Radius.lg,
-    ...Shadows.z3,
-    maxHeight: "85%",
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: Spacing.xl,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border0,
-  },
-  title: {
-    ...Typography.h2,
-    color: Colors.text0,
-  },
-  closeButton: {
-    width: 32,
-    height: 32,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  closeText: {
-    ...Typography.h2,
-    color: Colors.text2,
-  },
-  content: {
-    padding: Spacing.xl,
-    paddingTop: Spacing["2xl"],
-  },
-  sliderContainer: {
-    marginBottom: Spacing.xl,
-  },
-  sliderLabel: {
-    ...Typography.monoSm,
-    color: Colors.text1,
-    marginBottom: Spacing.sm,
-    textTransform: "uppercase",
-  },
-  error: {
-    ...Typography.small,
-    color: Colors.destructive,
-    marginBottom: Spacing.base,
-  },
-  actions: {
-    gap: Spacing.base,
-    padding: Spacing.xl,
-    paddingTop: Spacing.lg,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border0,
-  },
-  deleteButton: {
-    marginBottom: Spacing.sm,
-  },
-  saveButton: {
-    width: "100%",
-  },
-});

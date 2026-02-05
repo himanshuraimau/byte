@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/Card";
-import { Colors, Spacing, Typography } from "@/constants/theme";
+import { Spacing, Typography } from "@/constants/theme";
+import { useTheme } from "@/context/ThemeContext";
 import { Note } from "@/types/entities";
 import { formatTime } from "@/utils/date";
 import React from "react";
@@ -12,10 +13,38 @@ interface NoteCardProps {
 }
 
 export function NoteCard({ note, onPress, onLongPress }: NoteCardProps) {
+  const { colors } = useTheme();
   const timestamp = formatTime(note.created_at);
   const lines = note.content.split("\n");
   const firstLine = lines[0];
   const restLines = lines.slice(1).join("\n");
+
+  const styles = StyleSheet.create({
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: Spacing.sm,
+    },
+    typeLabel: {
+      ...Typography.monoXs,
+      color: colors.text2,
+    },
+    timestamp: {
+      ...Typography.monoMd,
+      color: colors.text2,
+    },
+    firstLine: {
+      ...Typography.h2,
+      color: colors.text0,
+      marginBottom: Spacing.xs,
+    },
+    content: {
+      ...Typography.body,
+      color: colors.text1,
+      lineHeight: Typography.body.lineHeight,
+    },
+  });
 
   return (
     <TouchableOpacity
@@ -35,30 +64,3 @@ export function NoteCard({ note, onPress, onLongPress }: NoteCardProps) {
     </TouchableOpacity>
   );
 }
-
-const styles = StyleSheet.create({
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: Spacing.sm,
-  },
-  typeLabel: {
-    ...Typography.monoXs,
-    color: Colors.text2,
-  },
-  timestamp: {
-    ...Typography.monoMd,
-    color: Colors.text2,
-  },
-  firstLine: {
-    ...Typography.h2,
-    color: Colors.text0,
-    marginBottom: Spacing.xs,
-  },
-  content: {
-    ...Typography.body,
-    color: Colors.text1,
-    lineHeight: Typography.body.lineHeight,
-  },
-});

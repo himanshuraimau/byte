@@ -1,135 +1,183 @@
-import * as SQLite from 'expo-sqlite';
-import { Task } from '@/types/entities';
+import { db, docToEntity, generateId } from "@/database/db";
+import { COLLECTIONS } from "@/database/firebase.config";
+import { Task } from "@/types/entities";
+import {
+    collection,
+    deleteDoc,
+    doc,
+    getDoc,
+    getDocs,
+    query,
+    setDoc,
+    Timestamp,
+    updateDoc,
+    where
+} from "firebase/firestore";
 
 export class TaskRepository {
-  private db: SQLite.SQLiteDatabase;
-
-  constructor(db: SQLite.SQLiteDatabase) {
-    this.db = db;
-  }
+  private collectionRef = collection(db, COLLECTIONS.TASKS);
 
   /**
    * Create a new task
    */
-  async create(dayId: number, title: string, progress: number = 0): Promise<Task> {
-    const result = await this.db.runAsync(
-      'INSERT INTO tasks (day_id, title, progress) VALUES (?, ?, ?)',
-      [dayId, title, progress]
-    );
-
-    if (result.lastInsertRowId) {
-      const task = await this.findById(result.lastInsertRowId);
-      if (task) {
-        return task;
-      }
-      throw new Error('Failed to retrieve created task');
-    }
-
-    throw new Error('Failed to create task');
-  }
-
-  /**
-   * Find task by ID
-   */
-  async findById(id: number): Promise<Task | null> {
-    const result = await this.db.getFirstAsync<{
-      id: number;
-      day_id: number;
-      title: string;
-      progress: number;
-      completed: number;
-      created_at: number;
-      updated_at: number;
-    }>('SELECT * FROM tasks WHERE id = ?', [id]);
-
-    if (result) {
-      return {
-        id: result.id,
-        day_id: result.day_id,
-        title: result.title,
-        progress: result.progress,
-        completed: result.completed === 1,
-        created_at: result.created_at,
-        updated_at: result.updated_at,
+  async create(dayId: string, title: string): Promise<Task> {
+    try {
+      const taskId = generateId();
+      const taskData = {
+        day_id: dayId,
+        title,
+        progress: 0,
+        completed: false,
+        created_at: Timestamp.now(),
+        updated_at: Timestamp.now(),
       };
-    }
 
-    return null;
+      await setDoc(doc(this.collectionRef, taskId), taskData);
+      
+      return docToEntity<Task>({ id: taskId }, taskData);
+    } catch (error: any) {
+      console.error("Create task error:", error);
+      throw error;
+    }
   }
 
   /**
-   * Find all tasks for a specific day
+   * Get task by ID
    */
-  async findByDayId(dayId: number): Promise<Task[]> {
-    const result = await this.db.getAllAsync<{
-      id: number;
-      day_id: number;
-      title: string;
-      progress: number;
-      completed: number;
-      created_at: number;
-      updated_at: number;
-    }>('SELECT * FROM tasks WHERE day_id = ? ORDER BY created_at ASC', [dayId]);
+  async getById(id: string): Promise<Task | null> {
+    try {
+      const docRef = doc(this.collectionRef, id);
+      const docSnap = await getDoc(docRef);
 
-    return result.map((row) => ({
-      id: row.id,
-      day_id: row.day_id,
-      title: row.title,
-      progress: row.progress,
-      completed: row.completed === 1,
-      created_at: row.created_at,
-      updated_at: row.updated_at,
-    }));
+      if (!docSnap.exists()) {
+        return null;
+      }
+
+      return docToEntity<Task>(docSnap, docSnap.data());
+    } catch (error: any) {
+      console.error("Get task by ID error:", error);
+      return null;
+    }
+  }
+
+  /**
+   * Get all tasks for a day
+   */
+  async getByDayId(dayId: string): Promise<Task[]> {
+    try {
+      const q = query(this.collectionRef, where("day_id", "==", dayId));
+      const snapshot = await getDocs(q);
+
+      return snapshot.docs.map(doc => docToEntity<Task>(doc, doc.data()));
+    } catch (error: any) {
+      console.error("Get tasks by day ID error:", error);
+      return [];
+    }
   }
 
   /**
    * Update task
    */
-  async update(id: number, updates: Partial<Pick<Task, 'title' | 'progress' | 'completed'>>): Promise<Task> {
-    const updatesList: string[] = [];
-    const values: any[] = [];
+  async update(id: string, data: Partial<Task>): Promise<Task> {
+    try {
+      const docRef = doc(this.collectionRef, id);
+      const docSnap = await getDoc(docRef);
 
-    if (updates.title !== undefined) {
-      updatesList.push('title = ?');
-      values.push(updates.title);
-    }
-    if (updates.progress !== undefined) {
-      updatesList.push('progress = ?');
-      values.push(updates.progress);
-    }
-    if (updates.completed !== undefined) {
-      updatesList.push('completed = ?');
-      values.push(updates.completed ? 1 : 0);
-    }
-
-    if (updatesList.length === 0) {
-      const task = await this.findById(id);
-      if (!task) {
-        throw new Error('Task not found');
+      if (!docSnap.exists()) {
+        throw new Error("Task not found");
       }
-      return task;
+
+      const updateData: any = { updated_at: Timestamp.now() };
+      if (data.title !== undefined) updateData.title = data.title;
+      if (data.progress !== undefined) updateData.progress = data.progress;
+      if (data.completed !== undefined) updateData.completed = data.completed;
+
+      await updateDoc(docRef, updateData);
+
+      const updatedDoc = await getDoc(docRef);
+      return docToEntity<Task>(updatedDoc, updatedDoc.data());
+    } catch (error: any) {
+      console.error("Update task error:", error);
+      throw error;
     }
-
-    updatesList.push('updated_at = strftime(\'%s\', \'now\')');
-    values.push(id);
-
-    await this.db.runAsync(
-      `UPDATE tasks SET ${updatesList.join(', ')} WHERE id = ?`,
-      values
-    );
-
-    const task = await this.findById(id);
-    if (!task) {
-      throw new Error('Failed to retrieve updated task');
-    }
-
-    return task;
   }
 
   /**
-   * Delete a task
+   * Delete task
    */
-  async delete(id: number): Promise<void> {
-    await this.db.runAsync('DELETE FROM tasks WHERE id = ?', [id]);
+  async delete(id: string): Promise<void> {
+    try {
+      // Delete associated sessions
+      const sessionsQuery = query(
+        collection(db, COLLECTIONS.SESSIONS), 
+        where("task_id", "==", id)
+      );
+      const sessionsSnap = await getDocs(sessionsQuery);
+
+      await Promise.all(sessionsSnap.docs.map(d => deleteDoc(d.ref)));
+
+      // Delete the task
+      await deleteDoc(doc(this.collectionRef, id));
+    } catch (error: any) {
+      console.error("Delete task error:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Toggle task completion
+   */
+  async toggleComplete(id: string): Promise<Task> {
+    try {
+      const docRef = doc(this.collectionRef, id);
+      const docSnap = await getDoc(docRef);
+
+      if (!docSnap.exists()) {
+        throw new Error("Task not found");
+      }
+
+      const taskData = docSnap.data();
+      const newCompleted = !taskData.completed;
+
+      await updateDoc(docRef, {
+        completed: newCompleted,
+        progress: newCompleted ? 100 : taskData.progress,
+        updated_at: Timestamp.now(),
+      });
+
+      const updatedDoc = await getDoc(docRef);
+      return docToEntity<Task>(updatedDoc, updatedDoc.data());
+    } catch (error: any) {
+      console.error("Toggle task complete error:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update task progress
+   */
+  async updateProgress(id: string, progress: number): Promise<Task> {
+    try {
+      const docRef = doc(this.collectionRef, id);
+      const docSnap = await getDoc(docRef);
+
+      if (!docSnap.exists()) {
+        throw new Error("Task not found");
+      }
+
+      const clampedProgress = Math.max(0, Math.min(100, progress));
+
+      await updateDoc(docRef, {
+        progress: clampedProgress,
+        completed: clampedProgress === 100,
+        updated_at: Timestamp.now(),
+      });
+
+      const updatedDoc = await getDoc(docRef);
+      return docToEntity<Task>(updatedDoc, updatedDoc.data());
+    } catch (error: any) {
+      console.error("Update task progress error:", error);
+      throw error;
+    }
   }
 }

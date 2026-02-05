@@ -1,7 +1,8 @@
 import { Card } from "@/components/ui/Card";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { ProgressBar } from "@/components/ui/ProgressBar";
-import { Colors, Spacing, Typography } from "@/constants/theme";
+import { Spacing, Typography } from "@/constants/theme";
+import { useTheme } from "@/context/ThemeContext";
 import { Task } from "@/types/entities";
 import { formatTime } from "@/utils/date";
 import React from "react";
@@ -20,8 +21,50 @@ export function TaskCard({
   onLongPress,
   onToggleComplete,
 }: TaskCardProps) {
+  const { colors } = useTheme();
   const timestamp = formatTime(task.created_at);
   const statusText = task.completed ? "COMPLETE" : "INCOMPLETE";
+
+  const styles = StyleSheet.create({
+    completed: {
+      opacity: 0.6,
+    },
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: Spacing.sm,
+    },
+    typeLabel: {
+      ...Typography.monoXs,
+      color: colors.text2,
+    },
+    timestamp: {
+      ...Typography.monoMd,
+      color: colors.text2,
+    },
+    title: {
+      ...Typography.h2,
+      color: colors.text0,
+      marginBottom: Spacing.base,
+    },
+    titleCompleted: {
+      textDecorationLine: "line-through",
+    },
+    progressContainer: {
+      marginBottom: Spacing.base,
+    },
+    footer: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: Spacing.sm,
+    },
+    status: {
+      ...Typography.monoXs,
+      color: colors.text2,
+      textTransform: "uppercase",
+    },
+  });
 
   return (
     <TouchableOpacity
@@ -54,44 +97,3 @@ export function TaskCard({
     </TouchableOpacity>
   );
 }
-
-const styles = StyleSheet.create({
-  completed: {
-    opacity: 0.6,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: Spacing.sm,
-  },
-  typeLabel: {
-    ...Typography.monoXs,
-    color: Colors.text2,
-  },
-  timestamp: {
-    ...Typography.monoMd,
-    color: Colors.text2,
-  },
-  title: {
-    ...Typography.h2,
-    color: Colors.text0,
-    marginBottom: Spacing.base,
-  },
-  titleCompleted: {
-    textDecorationLine: "line-through",
-  },
-  progressContainer: {
-    marginBottom: Spacing.base,
-  },
-  footer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.sm,
-  },
-  status: {
-    ...Typography.monoXs,
-    color: Colors.text2,
-    textTransform: "uppercase",
-  },
-});

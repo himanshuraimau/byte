@@ -3,22 +3,22 @@
  */
 
 export interface User {
-  id: number;
+  id: string;
   name: string;
   password?: string; // Optional when retrieving (never expose password)
   created_at: number; // Unix timestamp
 }
 
 export interface Day {
-  id: number;
+  id: string;
   date: string; // ISO 8601: YYYY-MM-DD
-  user_id: number; // Foreign key to users table
+  user_id: string; // Foreign key to users table
   created_at: number; // Unix timestamp
 }
 
 export interface Task {
-  id: number;
-  day_id: number;
+  id: string;
+  day_id: string;
   title: string;
   progress: number; // 0-100
   completed: boolean;
@@ -27,17 +27,17 @@ export interface Task {
 }
 
 export interface Note {
-  id: number;
-  day_id: number;
+  id: string;
+  day_id: string;
   content: string;
   created_at: number;
   updated_at: number;
 }
 
 export interface Session {
-  id: number;
-  day_id: number;
-  task_id: number | null; // Nullable for standalone sessions
+  id: string;
+  day_id: string;
+  task_id: string | null; // Nullable for standalone sessions
   name: string;
   duration_minutes: number;
   started_at: number;
@@ -52,5 +52,3 @@ export type TimelineEntry =
   | { type: "session"; data: Session };
 
 export type TemporalMode = "yesterday" | "today" | "tomorrow" | "custom";
-
-export type TemporalMode = "yesterday" | "today" | "tomorrow";

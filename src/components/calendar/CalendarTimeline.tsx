@@ -1,5 +1,4 @@
 import { useUser } from "@/context/UserContext";
-import { initDatabase } from "@/database/db";
 import { DayRepository } from "@/database/repositories";
 import { formatDateISO, getTodayISO, parseDateISO } from "@/utils/date";
 import React, { useEffect, useRef, useState } from "react";
@@ -65,8 +64,7 @@ export function CalendarTimeline({
     if (!user) return;
 
     try {
-      const db = await initDatabase();
-      const dayRepo = new DayRepository(db);
+      const dayRepo = new DayRepository();
       const days = await dayRepo.findAllWithEntries(user.id);
       const set = new Set<string>();
       days.forEach((day) => set.add(day.date));

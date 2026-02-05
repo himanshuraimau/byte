@@ -1,18 +1,19 @@
 import {
     DarkTheme,
     DefaultTheme,
-    ThemeProvider,
+    ThemeProvider as NavigationThemeProvider,
 } from "@react-navigation/native";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import "react-native-reanimated";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { DateProvider, useDate } from "@/context/DateContext";
+import { ThemeProvider, useTheme } from "@/context/ThemeContext";
 import { TimelineProvider } from "@/context/TimelineContext";
 import { TimerProvider } from "@/context/TimerContext";
 import { UserProvider, useUser } from "@/context/UserContext";
-import { useColorScheme } from "@/hooks/use-color-scheme";
 import { ReactNode } from "react";
 
 export const unstable_settings = {
@@ -20,7 +21,7 @@ export const unstable_settings = {
 };
 
 function RootLayoutNav() {
-  const colorScheme = useColorScheme();
+  const { isDark } = useTheme();
   const { user, loading } = useUser();
   const segments = useSegments();
   const router = useRouter();
@@ -40,7 +41,7 @@ function RootLayoutNav() {
   }, [user, loading, segments]);
 
   return (
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+    <NavigationThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
       <DateProvider>
         <TimerProvider>
           <TimelineProviderWrapper>
@@ -53,11 +54,11 @@ function RootLayoutNav() {
                 options={{ presentation: "modal", title: "Modal" }}
               />
             </Stack>
-            <StatusBar style="auto" />
+            <StatusBar style={isDark ? "light" : "dark"} />
           </TimelineProviderWrapper>
         </TimerProvider>
       </DateProvider>
-    </ThemeProvider>
+    </NavigationThemeProvider>
   );
 }
 
@@ -70,8 +71,12 @@ function TimelineProviderWrapper({ children }: { children: ReactNode }) {
 
 export default function RootLayout() {
   return (
-    <UserProvider>
-      <RootLayoutNav />
-    </UserProvider>
+    <SafeAreaProvider>
+      <ThemeProvider>
+        <UserProvider>
+          <RootLayoutNav />
+        </UserProvider>
+      </ThemeProvider>
+    </SafeAreaProvider>
   );
 }

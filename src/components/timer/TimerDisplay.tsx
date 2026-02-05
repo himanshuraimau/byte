@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Colors, Typography, Spacing, Radius } from '@/constants/theme';
+import { Spacing, Typography } from '@/constants/theme';
+import { useTheme } from '@/context/ThemeContext';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { formatDurationSeconds } from '@/utils/date';
 import { Session } from '@/types/entities';
@@ -12,8 +13,56 @@ interface TimerDisplayProps {
 }
 
 export function TimerDisplay({ session, remainingSeconds, elapsedSeconds }: TimerDisplayProps) {
+  const { colors } = useTheme();
   const totalSeconds = session.duration_minutes * 60;
   const progress = totalSeconds > 0 ? ((totalSeconds - remainingSeconds) / totalSeconds) * 100 : 0;
+
+  const styles = StyleSheet.create({
+    container: {
+      alignItems: 'center',
+      gap: Spacing.xl,
+    },
+    timerContainer: {
+      alignItems: 'center',
+      gap: Spacing.sm,
+    },
+    timerText: {
+      ...Typography.monoLg,
+      color: colors.text0,
+      textAlign: 'center',
+    },
+    timerLabel: {
+      ...Typography.monoSm,
+      color: colors.text2,
+      textTransform: 'uppercase',
+    },
+    sessionName: {
+      ...Typography.h2,
+      color: colors.text0,
+      textAlign: 'center',
+    },
+    progressContainer: {
+      width: '100%',
+      paddingHorizontal: Spacing.xl,
+    },
+    metadata: {
+      gap: Spacing.xs,
+      width: '100%',
+      paddingHorizontal: Spacing.xl,
+    },
+    metadataRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    metadataLabel: {
+      ...Typography.monoSm,
+      color: colors.text2,
+    },
+    metadataValue: {
+      ...Typography.monoSm,
+      color: colors.text1,
+    },
+  });
 
   return (
     <View style={styles.container}>
@@ -49,50 +98,3 @@ export function TimerDisplay({ session, remainingSeconds, elapsedSeconds }: Time
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    gap: Spacing.xl,
-  },
-  timerContainer: {
-    alignItems: 'center',
-    gap: Spacing.sm,
-  },
-  timerText: {
-    ...Typography.monoLg,
-    color: Colors.text0,
-    textAlign: 'center',
-  },
-  timerLabel: {
-    ...Typography.monoSm,
-    color: Colors.text2,
-    textTransform: 'uppercase',
-  },
-  sessionName: {
-    ...Typography.h2,
-    color: Colors.text0,
-    textAlign: 'center',
-  },
-  progressContainer: {
-    width: '100%',
-    paddingHorizontal: Spacing.xl,
-  },
-  metadata: {
-    gap: Spacing.xs,
-    width: '100%',
-    paddingHorizontal: Spacing.xl,
-  },
-  metadataRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  metadataLabel: {
-    ...Typography.monoSm,
-    color: Colors.text2,
-  },
-  metadataValue: {
-    ...Typography.monoSm,
-    color: Colors.text1,
-  },
-});

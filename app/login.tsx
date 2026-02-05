@@ -1,21 +1,16 @@
-import {
-    Colors,
-    Radius,
-    Shadows,
-    Spacing,
-    Typography,
-} from "@/constants/theme";
+import { Radius, Shadows, Spacing, Typography } from "@/constants/theme";
+import { useTheme } from "@/context/ThemeContext";
 import { useUser } from "@/context/UserContext";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-    KeyboardAvoidingView,
-    Platform,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 export default function LoginScreen() {
@@ -24,6 +19,7 @@ export default function LoginScreen() {
   const [error, setError] = useState("");
   const { login } = useUser();
   const router = useRouter();
+  const { colors } = useTheme();
 
   const handleLogin = async () => {
     if (!name.trim() || !password.trim()) {
@@ -46,20 +42,29 @@ export default function LoginScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.bg1 }]}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <View style={styles.content}>
-        <View style={styles.card}>
-          <Text style={styles.title}>Welcome Back</Text>
-          <Text style={styles.subtitle}>Login to Byte</Text>
+        <View style={[styles.card, { backgroundColor: colors.bg0 }]}>
+          <Text style={[styles.title, { color: colors.text0 }]}>
+            Welcome Back
+          </Text>
+          <Text style={[styles.subtitle, { color: colors.text1 }]}>
+            Login to Byte
+          </Text>
 
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>USERNAME</Text>
+            <Text style={[styles.label, { color: colors.text1 }]}>
+              USERNAME
+            </Text>
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input,
+                { color: colors.text0, borderBottomColor: colors.border0 },
+              ]}
               placeholder="Enter your username"
-              placeholderTextColor={Colors.text3}
+              placeholderTextColor={colors.text3}
               value={name}
               onChangeText={(text) => {
                 setName(text);
@@ -71,11 +76,16 @@ export default function LoginScreen() {
           </View>
 
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>PASSWORD</Text>
+            <Text style={[styles.label, { color: colors.text1 }]}>
+              PASSWORD
+            </Text>
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input,
+                { color: colors.text0, borderBottomColor: colors.border0 },
+              ]}
               placeholder="Enter your password"
-              placeholderTextColor={Colors.text3}
+              placeholderTextColor={colors.text3}
               value={password}
               onChangeText={(text) => {
                 setPassword(text);
@@ -87,25 +97,36 @@ export default function LoginScreen() {
             />
           </View>
 
-          {error ? <Text style={styles.error}>{error}</Text> : null}
+          {error ? (
+            <Text style={[styles.error, { color: colors.destructive }]}>
+              {error}
+            </Text>
+          ) : null}
 
           <View style={styles.buttonContainer}>
             <TouchableOpacity
               style={[
                 styles.button,
+                { backgroundColor: colors.accent0 },
                 (!name.trim() || !password.trim()) && styles.buttonDisabled,
               ]}
               onPress={handleLogin}
               disabled={!name.trim() || !password.trim()}
             >
-              <Text style={styles.buttonText}>Login</Text>
+              <Text style={[styles.buttonText, { color: colors.bg0 }]}>
+                Login
+              </Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.footer}>
-            <Text style={styles.footerText}>Don't have an account? </Text>
+            <Text style={[styles.footerText, { color: colors.text2 }]}>
+              Don&apos;t have an account?{" "}
+            </Text>
             <TouchableOpacity onPress={goToRegister}>
-              <Text style={styles.link}>Register</Text>
+              <Text style={[styles.link, { color: colors.accent0 }]}>
+                Register
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -117,7 +138,6 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.bg1,
   },
   content: {
     flex: 1,
@@ -126,7 +146,6 @@ const styles = StyleSheet.create({
     padding: Spacing.xl,
   },
   card: {
-    backgroundColor: Colors.bg0,
     borderRadius: Radius.lg,
     padding: Spacing.xl,
     width: "100%",
@@ -135,13 +154,11 @@ const styles = StyleSheet.create({
   },
   title: {
     ...Typography.h1,
-    color: Colors.text0,
     textAlign: "center",
     marginBottom: Spacing.sm,
   },
   subtitle: {
     ...Typography.body,
-    color: Colors.text1,
     textAlign: "center",
     marginBottom: Spacing.xl,
   },
@@ -150,22 +167,18 @@ const styles = StyleSheet.create({
   },
   label: {
     ...Typography.monoSm,
-    color: Colors.text1,
     marginBottom: Spacing.sm,
     textTransform: "uppercase",
   },
   input: {
     ...Typography.body,
-    color: Colors.text0,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border0,
     paddingVertical: Spacing.lg,
     paddingHorizontal: 0,
     fontSize: 16,
   },
   error: {
     ...Typography.small,
-    color: Colors.destructive,
     marginBottom: Spacing.base,
     textAlign: "center",
   },
@@ -173,7 +186,6 @@ const styles = StyleSheet.create({
     marginTop: Spacing.lg,
   },
   button: {
-    backgroundColor: Colors.accent0,
     borderRadius: Radius.md,
     paddingVertical: Spacing.base,
     paddingHorizontal: Spacing.xl,
@@ -187,7 +199,6 @@ const styles = StyleSheet.create({
   buttonText: {
     ...Typography.body,
     fontWeight: "500",
-    color: Colors.bg0,
   },
   footer: {
     flexDirection: "row",
@@ -197,11 +208,9 @@ const styles = StyleSheet.create({
   },
   footerText: {
     ...Typography.small,
-    color: Colors.text2,
   },
   link: {
     ...Typography.small,
-    color: Colors.accent0,
     fontWeight: "500",
   },
 });

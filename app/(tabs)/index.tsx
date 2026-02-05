@@ -11,8 +11,9 @@ import { ActionSheet, ActionSheetOption } from "@/components/ui/ActionSheet";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { ThemedView } from "@/components/ui/themed-view";
 import { Toast } from "@/components/ui/Toast";
-import { Colors, Spacing } from "@/constants/theme";
+import { Spacing } from "@/constants/theme";
 import { useDate } from "@/context/DateContext";
+import { useTheme } from "@/context/ThemeContext";
 import { useTimeline } from "@/context/TimelineContext";
 import { useNote } from "@/hooks/useNote";
 import { useTask } from "@/hooks/useTask";
@@ -22,16 +23,15 @@ import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
     ActivityIndicator,
-    Platform,
-    SafeAreaView,
     ScrollView,
-    StatusBar,
     StyleSheet,
     View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function TimelineScreen() {
   const router = useRouter();
+  const { colors } = useTheme();
   const { selectedDate, temporalMode, setTemporalMode, setSelectedDate } =
     useDate();
   const { entries, loading, entriesCount, refreshTimeline } = useTimeline();
@@ -204,7 +204,7 @@ export default function TimelineScreen() {
     return (
       <ThemedView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={Colors.accent0} />
+          <ActivityIndicator size="large" color={colors.accent0} />
         </View>
       </ThemedView>
     );
@@ -212,7 +212,7 @@ export default function TimelineScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView edges={["top"]} style={{ backgroundColor: colors.bg1 }}>
         <View style={styles.headerSection}>
           <View style={styles.dateNavigator}>
             <SegmentedControl
@@ -328,14 +328,10 @@ export default function TimelineScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.bg1,
-  },
-  safeArea: {
-    backgroundColor: Colors.bg0,
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
+    
   },
   headerSection: {
-    backgroundColor: Colors.bg0,
+    
     paddingTop: Spacing.lg,
     paddingBottom: Spacing.lg,
     paddingHorizontal: Spacing.lg,

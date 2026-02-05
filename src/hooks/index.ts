@@ -1,8 +1,11 @@
 /**
- * Hooks barrel exports
+ * Custom Hooks
  */
 
-export { useTask } from './useTask';
-export { useNote } from './useNote';
-export { useSession } from './useSession';
-export { useToast } from './useToast';
+export * from './use-color-scheme';
+export * from './use-theme-color';
+export * from './useNote';
+export * from './useSession';
+export * from './useTask';
+export * from './useToast';
+

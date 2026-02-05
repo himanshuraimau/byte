@@ -1,95 +1,81 @@
-import { useState, useCallback } from 'react';
-import * as SQLite from 'expo-sqlite';
-import { Session, Task } from '@/types/entities';
-import { initDatabase } from '@/database/db';
-import { DayRepository, SessionRepository, TaskRepository } from '@/database/repositories';
-import { useDate } from '@/context/DateContext';
-import { useTimeline } from '@/context/TimelineContext';
+import { useDate } from "@/context/DateContext";
+import { useTimeline } from "@/context/TimelineContext";
+import { useUser } from "@/context/UserContext";
+import { DayRepository, SessionRepository } from "@/database/repositories";
+import { Session } from "@/types/entities";
+import { useState } from "react";
 
 export function useSession() {
-  const [loading, setLoading] = useState(false);
+  const { user } = useUser();
   const { selectedDate } = useDate();
   const { refreshTimeline } = useTimeline();
+  const [loading, setLoading] = useState(false);
 
-  const createSession = useCallback(
-    async (
-      name: string,
-      durationMinutes: number,
-      taskId: number | null = null
-    ): Promise<Session> => {
-      setLoading(true);
-      try {
-        const db = await initDatabase();
-        const dayRepo = new DayRepository(db);
-        const sessionRepo = new SessionRepository(db);
-
-        const day = await dayRepo.createOrGet(selectedDate);
-        const startedAt = Math.floor(Date.now() / 1000); // Unix timestamp
-
-        const session = await sessionRepo.create(
-          day.id,
-          name,
-          durationMinutes,
-          startedAt,
-          taskId
-        );
-
-        return session;
-      } catch (error) {
-        console.error('Failed to create session:', error);
-        throw error;
-      } finally {
-        setLoading(false);
-      }
-    },
-    [selectedDate]
-  );
-
-  const completeSession = useCallback(
-    async (sessionId: number): Promise<Session> => {
-      setLoading(true);
-      try {
-        const db = await initDatabase();
-        const sessionRepo = new SessionRepository(db);
-
-        const endedAt = Math.floor(Date.now() / 1000);
-        const session = await sessionRepo.complete(sessionId, endedAt);
-
-        await refreshTimeline(selectedDate);
-        return session;
-      } catch (error) {
-        console.error('Failed to complete session:', error);
-        throw error;
-      } finally {
-        setLoading(false);
-      }
-    },
-    [selectedDate, refreshTimeline]
-  );
-
-  const getTasksForDay = useCallback(async (date?: string): Promise<Task[]> => {
+  const createSession = async (
+    name: string,
+    durationMinutes: number,
+    startedAt: number,
+    taskId?: string | null
+  ): Promise<Session> => {
+    if (!user) throw new Error("User not authenticated");
+    
     try {
-      const db = await initDatabase();
-      const dayRepo = new DayRepository(db);
-      const taskRepo = new TaskRepository(db);
-
-      const targetDate = date || selectedDate;
-      const day = await dayRepo.findByDate(targetDate);
-      if (!day) {
-        return [];
-      }
-
-      return await taskRepo.findByDayId(day.id);
+      setLoading(true);
+      const dayRepo = new DayRepository();
+      const sessionRepo = new SessionRepository();
+      
+      // Get or create day
+      const day = await dayRepo.getOrCreate(user.id, selectedDate);
+      
+      // Create session
+      const session = await sessionRepo.create(day.id, name, durationMinutes, taskId || undefined);
+      
+      // Refresh timeline
+      await refreshTimeline(selectedDate);
+      
+      return session;
     } catch (error) {
-      console.error('Failed to get tasks:', error);
-      return [];
+      console.error("Failed to create session:", error);
+      throw error;
+    } finally {
+      setLoading(false);
     }
-  }, [selectedDate]);
+  };
+
+  const completeSession = async (sessionId: string, endedAt: number) => {
+    try {
+      setLoading(true);
+      const sessionRepo = new SessionRepository();
+      
+      await sessionRepo.complete(sessionId);
+      await refreshTimeline(selectedDate);
+    } catch (error) {
+      console.error("Failed to complete session:", error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteSession = async (sessionId: string) => {
+    try {
+      setLoading(true);
+      const sessionRepo = new SessionRepository();
+      
+      await sessionRepo.delete(sessionId);
+      await refreshTimeline(selectedDate);
+    } catch (error) {
+      console.error("Failed to delete session:", error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return {
     createSession,
     completeSession,
-    getTasksForDay,
+    deleteSession,
     loading,
   };
 }

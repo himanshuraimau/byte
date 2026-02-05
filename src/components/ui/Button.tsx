@@ -1,7 +1,8 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
 import Animated, { useAnimatedStyle, withSpring, useSharedValue } from 'react-native-reanimated';
-import { Colors, Typography, Radius, Spacing } from '@/constants/theme';
+import { Radius, Spacing, Typography } from '@/constants/theme';
+import { useTheme } from '@/context/ThemeContext';
 
 interface ButtonProps {
   title: string;
@@ -22,6 +23,7 @@ export function Button({
   style,
   textStyle,
 }: ButtonProps) {
+  const { colors } = useTheme();
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -39,6 +41,48 @@ export function Button({
       scale.value = withSpring(1, { damping: 15, stiffness: 300 });
     }
   };
+
+  const styles = StyleSheet.create({
+    button: {
+      height: 48,
+      borderRadius: Radius.md,
+      paddingHorizontal: Spacing.xl,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    primary: {
+      backgroundColor: colors.accent0,
+    },
+    secondary: {
+      backgroundColor: 'transparent',
+      borderWidth: 1,
+      borderColor: colors.border0,
+    },
+    destructive: {
+      backgroundColor: 'transparent',
+      borderWidth: 1,
+      borderColor: colors.destructive,
+    },
+    disabled: {
+      opacity: 0.5,
+    },
+    text: {
+      ...Typography.body,
+      fontWeight: '500',
+    },
+    primaryText: {
+      color: colors.bg0,
+    },
+    secondaryText: {
+      color: colors.text0,
+    },
+    destructiveText: {
+      color: colors.destructive,
+    },
+    disabledText: {
+      color: colors.text2,
+    },
+  });
 
   const buttonStyle = [
     styles.button,
@@ -70,45 +114,3 @@ export function Button({
     </AnimatedTouchable>
   );
 }
-
-const styles = StyleSheet.create({
-  button: {
-    height: 48,
-    borderRadius: Radius.md,
-    paddingHorizontal: Spacing.xl,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  primary: {
-    backgroundColor: Colors.accent0,
-  },
-  secondary: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: Colors.border0,
-  },
-  destructive: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: Colors.destructive,
-  },
-  disabled: {
-    opacity: 0.5,
-  },
-  text: {
-    ...Typography.body,
-    fontWeight: '500',
-  },
-  primaryText: {
-    color: Colors.bg0,
-  },
-  secondaryText: {
-    color: Colors.text0,
-  },
-  destructiveText: {
-    color: Colors.destructive,
-  },
-  disabledText: {
-    color: Colors.text2,
-  },
-});

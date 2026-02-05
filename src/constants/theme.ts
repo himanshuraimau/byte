@@ -3,8 +3,8 @@
  * High-Precision Industrial Minimalism
  */
 
-// Color Palette
-export const Colors = {
+// Light Mode Colors
+export const LightColors = {
   // Background
   bg0: '#FFFFFF', // Cards, main backgrounds
   bg1: '#F7F7F7', // Subtle fills, secondary backgrounds
@@ -30,6 +30,44 @@ export const Colors = {
   border0: 'rgba(0, 0, 0, 0.06)', // Subtle borders (rare use)
   border1: 'rgba(0, 0, 0, 0.12)', // Medium borders
 };
+
+// Dark Mode Colors
+export const DarkColors = {
+  // Background
+  bg0: '#1A1A1A', // Cards, main backgrounds
+  bg1: '#0F0F0F', // Subtle fills, secondary backgrounds
+  bg2: '#2A2A2A', // Dividers, borders (rare)
+
+  // Text
+  text0: '#FFFFFF', // Primary text, headings
+  text1: '#D4D4D4', // Secondary text, body content
+  text2: '#A3A3A3', // Metadata, timestamps, muted text
+  text3: '#666666', // Placeholder text, disabled states
+
+  // Accent
+  accent0: '#2BB673', // Primary accent (green), progress bars, active states
+  accent1: 'rgba(43, 182, 115, 0.16)', // Subtle accent backgrounds
+  accent2: 'rgba(43, 182, 115, 0.08)', // Very subtle fills
+
+  // States
+  destructive: '#EF4444', // Delete, cancel, errors
+  warning: '#F59E0B', // Warnings (future use)
+  success: '#2BB673', // Success states (same as accent)
+
+  // Borders
+  border0: 'rgba(255, 255, 255, 0.08)', // Subtle borders (rare use)
+  border1: 'rgba(255, 255, 255, 0.12)', // Medium borders
+};
+
+// Export Colors with light/dark theme support
+export const Colors = {
+  light: LightColors,
+  dark: DarkColors,
+};
+
+// Also export LightColors as default for components that haven't migrated yet
+// This maintains backward compatibility
+export { LightColors as DefaultColors };
 
 // Typography
 export const Typography = {

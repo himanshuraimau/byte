@@ -1,4 +1,5 @@
-import { Colors, Spacing, Typography } from "@/constants/theme";
+import { Spacing, Typography } from "@/constants/theme";
+import { useTheme } from "@/context/ThemeContext";
 import React from "react";
 import {
     StyleSheet,
@@ -14,12 +15,45 @@ interface TextareaProps extends TextInputProps {
 }
 
 export function Textarea({ label, error, style, ...props }: TextareaProps) {
+  const { colors } = useTheme();
+
+  const styles = StyleSheet.create({
+    container: {
+      marginBottom: Spacing.base,
+    },
+    label: {
+      ...Typography.monoSm,
+      color: colors.text1,
+      marginBottom: Spacing.sm,
+      textTransform: "uppercase",
+    },
+    textarea: {
+      ...Typography.body,
+      color: colors.text0,
+      lineHeight: 24,
+      minHeight: 150,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border0,
+      paddingVertical: Spacing.lg,
+      paddingHorizontal: 0,
+      fontSize: 16,
+    },
+    textareaError: {
+      borderBottomColor: colors.destructive,
+    },
+    error: {
+      ...Typography.small,
+      color: colors.destructive,
+      marginTop: Spacing.sm,
+    },
+  });
+
   return (
     <View style={styles.container}>
       {label && <Text style={styles.label}>{label}</Text>}
       <TextInput
         style={[styles.textarea, error && styles.textareaError, style]}
-        placeholderTextColor={Colors.text3}
+        placeholderTextColor={colors.text3}
         multiline
         textAlignVertical="top"
         {...props}
@@ -28,34 +62,3 @@ export function Textarea({ label, error, style, ...props }: TextareaProps) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    marginBottom: Spacing.base,
-  },
-  label: {
-    ...Typography.monoSm,
-    color: Colors.text1,
-    marginBottom: Spacing.sm,
-    textTransform: "uppercase",
-  },
-  textarea: {
-    ...Typography.body,
-    color: Colors.text0,
-    lineHeight: 24,
-    minHeight: 150,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border0,
-    paddingVertical: Spacing.lg,
-    paddingHorizontal: 0,
-    fontSize: 16,
-  },
-  textareaError: {
-    borderBottomColor: Colors.destructive,
-  },
-  error: {
-    ...Typography.small,
-    color: Colors.destructive,
-    marginTop: Spacing.sm,
-  },
-});

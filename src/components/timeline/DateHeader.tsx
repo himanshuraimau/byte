@@ -1,5 +1,6 @@
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors, Spacing, Typography } from '@/constants/theme';
+import { Spacing, Typography } from '@/constants/theme';
+import { useTheme } from '@/context/ThemeContext';
 import { DateService } from '@/services/DateService';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -11,9 +12,47 @@ interface DateHeaderProps {
 }
 
 export function DateHeader({ date, entriesCount, onCalendarPress }: DateHeaderProps) {
+  const { colors } = useTheme();
   const displayText = DateService.formatDisplay(date);
   const fullDate = DateService.formatFullDate(date);
   const dayOfWeek = DateService.getDayOfWeek(date);
+
+  const styles = StyleSheet.create({
+    container: {
+      marginTop: Spacing['2xl'],
+      marginBottom: Spacing.xl,
+    },
+    headerRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: Spacing.sm,
+    },
+    titleContainer: {
+      flex: 1,
+    },
+    dateText: {
+      ...Typography.display,
+      color: colors.text0,
+    },
+    fullDateText: {
+      ...Typography.small,
+      color: colors.text2,
+      marginTop: Spacing.xs,
+    },
+    calendarButton: {
+      padding: Spacing.sm,
+      marginLeft: Spacing.base,
+    },
+    metadata: {
+      flexDirection: 'row',
+      gap: Spacing.base,
+    },
+    metadataText: {
+      ...Typography.monoXs,
+      color: colors.text2,
+    },
+  });
 
   return (
     <View style={styles.container}>
@@ -24,7 +63,7 @@ export function DateHeader({ date, entriesCount, onCalendarPress }: DateHeaderPr
         </View>
         {onCalendarPress && (
           <TouchableOpacity onPress={onCalendarPress} style={styles.calendarButton}>
-            <IconSymbol name="calendar" size={24} color={Colors.text2} />
+            <IconSymbol name="calendar" size={24} color={colors.text2} />
           </TouchableOpacity>
         )}
       </View>
@@ -37,40 +76,3 @@ export function DateHeader({ date, entriesCount, onCalendarPress }: DateHeaderPr
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    marginTop: Spacing['2xl'],
-    marginBottom: Spacing.xl,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.sm,
-  },
-  titleContainer: {
-    flex: 1,
-  },
-  dateText: {
-    ...Typography.display,
-    color: Colors.text0,
-  },
-  fullDateText: {
-    ...Typography.small,
-    color: Colors.text2,
-    marginTop: Spacing.xs,
-  },
-  calendarButton: {
-    padding: Spacing.sm,
-    marginLeft: Spacing.base,
-  },
-  metadata: {
-    flexDirection: 'row',
-    gap: Spacing.base,
-  },
-  metadataText: {
-    ...Typography.monoXs,
-    color: Colors.text2,
-  },
-});

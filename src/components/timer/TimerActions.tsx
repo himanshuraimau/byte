@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Colors, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
 import { Button } from '@/components/ui/Button';
 
 interface TimerActionsProps {

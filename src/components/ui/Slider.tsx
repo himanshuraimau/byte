@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, LayoutChangeEvent } from 'react-native';
-import { Colors, Typography, Spacing, Radius } from '@/constants/theme';
+import { Radius, Spacing, Typography } from '@/constants/theme';
+import { useTheme } from '@/context/ThemeContext';
 
 interface SliderProps {
   value: number; // 0-100
@@ -19,6 +20,7 @@ export function Slider({
   step = 5,
   showValue = true,
 }: SliderProps) {
+  const { colors } = useTheme();
   const [trackWidth, setTrackWidth] = useState(0);
 
   const snapValue = (val: number): number => {
@@ -41,6 +43,33 @@ export function Slider({
 
   const percentage = ((value - minimumValue) / (maximumValue - minimumValue)) * 100;
 
+  const styles = StyleSheet.create({
+    container: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Spacing.sm,
+    },
+    track: {
+      flex: 1,
+      height: 48,
+      backgroundColor: colors.bg2,
+      borderRadius: Radius.sm,
+      overflow: 'hidden',
+      justifyContent: 'center',
+    },
+    fill: {
+      height: '100%',
+      backgroundColor: colors.accent0,
+      borderRadius: Radius.sm,
+    },
+    value: {
+      ...Typography.monoSm,
+      color: colors.accent0,
+      minWidth: 40,
+      textAlign: 'right',
+    },
+  });
+
   return (
     <View style={styles.container}>
       <TouchableOpacity
@@ -56,30 +85,3 @@ export function Slider({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-  },
-  track: {
-    flex: 1,
-    height: 48,
-    backgroundColor: Colors.bg2,
-    borderRadius: Radius.sm,
-    overflow: 'hidden',
-    justifyContent: 'center',
-  },
-  fill: {
-    height: '100%',
-    backgroundColor: Colors.accent0,
-    borderRadius: Radius.sm,
-  },
-  value: {
-    ...Typography.monoSm,
-    color: Colors.accent0,
-    minWidth: 40,
-    textAlign: 'right',
-  },
-});

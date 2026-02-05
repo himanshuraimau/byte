@@ -1,4 +1,5 @@
-import { Colors, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
+import { Radius, Shadows, Spacing, Typography } from '@/constants/theme';
+import { useTheme } from '@/context/ThemeContext';
 import { initDatabase } from '@/database/db';
 import { NoteRepository, SessionRepository, TaskRepository } from '@/database/repositories';
 import React, { useEffect, useState } from 'react';
@@ -19,6 +20,7 @@ interface TodoItem {
 }
 
 export function TimelineTodoList({ selectedDate, isVisible }: TimelineTodoListProps) {
+    const { colors } = useTheme();
     const [todos, setTodos] = useState<TodoItem[]>([]);
     const [loading, setLoading] = useState(false);
     const height = useSharedValue(0);
@@ -100,6 +102,58 @@ export function TimelineTodoList({ selectedDate, isVisible }: TimelineTodoListPr
 
     if (!isVisible) return null;
 
+    const styles = StyleSheet.create({
+        container: {
+            overflow: 'hidden',
+            backgroundColor: colors.bg1,
+        },
+        listContent: {
+            padding: Spacing.lg,
+            gap: Spacing.base,
+        },
+        todoCard: {
+            backgroundColor: colors.bg0,
+            borderRadius: Radius.md,
+            padding: Spacing.base,
+            borderWidth: 1,
+            borderColor: colors.border0,
+            ...Shadows.z1,
+        },
+        todoHeader: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: Spacing.xs,
+        },
+        todoType: {
+            ...Typography.monoXs,
+            color: colors.text2,
+        },
+        todoStatus: {
+            ...Typography.body,
+            color: colors.accent0,
+        },
+        todoTitle: {
+            ...Typography.body,
+            color: colors.text0,
+            marginBottom: Spacing.xs,
+        },
+        todoSubtitle: {
+            ...Typography.small,
+            color: colors.text2,
+        },
+        emptyState: {
+            flex: 1,
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: Spacing.xl,
+        },
+        emptyText: {
+            ...Typography.small,
+            color: colors.text2,
+        },
+    });
+
     return (
         <Animated.View style={[styles.container, animatedStyle]}>
             {todos.length === 0 ? (
@@ -132,55 +186,3 @@ export function TimelineTodoList({ selectedDate, isVisible }: TimelineTodoListPr
         </Animated.View>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        overflow: 'hidden',
-        backgroundColor: Colors.bg1,
-    },
-    listContent: {
-        padding: Spacing.lg,
-        gap: Spacing.base,
-    },
-    todoCard: {
-        backgroundColor: Colors.bg0,
-        borderRadius: Radius.md,
-        padding: Spacing.base,
-        borderWidth: 1,
-        borderColor: Colors.border0,
-        ...Shadows.z1,
-    },
-    todoHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: Spacing.xs,
-    },
-    todoType: {
-        ...Typography.monoXs,
-        color: Colors.text2,
-    },
-    todoStatus: {
-        ...Typography.body,
-        color: Colors.accent0,
-    },
-    todoTitle: {
-        ...Typography.body,
-        color: Colors.text0,
-        marginBottom: Spacing.xs,
-    },
-    todoSubtitle: {
-        ...Typography.small,
-        color: Colors.text2,
-    },
-    emptyState: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: Spacing.xl,
-    },
-    emptyText: {
-        ...Typography.small,
-        color: Colors.text2,
-    },
-});

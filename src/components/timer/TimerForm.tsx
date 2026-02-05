@@ -1,7 +1,8 @@
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Config } from '@/constants/config';
-import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
+import { Radius, Spacing, Typography } from '@/constants/theme';
+import { useTheme } from '@/context/ThemeContext';
 import { Task } from '@/types/entities';
 import React, { useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -13,6 +14,7 @@ interface TimerFormProps {
 }
 
 export function TimerForm({ onStart, tasks, loading = false }: TimerFormProps) {
+  const { colors } = useTheme();
   const [name, setName] = useState('');
   const [selectedDuration, setSelectedDuration] = useState<number | null>(null);
   const [customDuration, setCustomDuration] = useState('');
@@ -40,6 +42,75 @@ export function TimerForm({ onStart, tasks, loading = false }: TimerFormProps) {
   };
 
   const canStart = name.trim() && (selectedDuration || (customDuration && parseInt(customDuration, 10) > 0));
+
+  const styles = StyleSheet.create({
+    container: {
+      gap: Spacing.xl,
+    },
+    section: {
+      gap: Spacing.base,
+    },
+    label: {
+      ...Typography.monoSm,
+      color: colors.text1,
+      textTransform: 'uppercase',
+    },
+    durationChips: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: Spacing.sm,
+    },
+    chip: {
+      paddingVertical: Spacing.sm,
+      paddingHorizontal: Spacing.base,
+      borderRadius: Radius.sm,
+      backgroundColor: colors.bg1,
+      borderWidth: 1,
+      borderColor: colors.border0,
+    },
+    chipSelected: {
+      backgroundColor: colors.accent0,
+      borderColor: colors.accent0,
+    },
+    chipText: {
+      ...Typography.monoSm,
+      color: colors.text1,
+    },
+    chipTextSelected: {
+      color: colors.bg0,
+    },
+    customInput: {
+      marginTop: Spacing.sm,
+    },
+    taskList: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: Spacing.sm,
+    },
+    taskChip: {
+      paddingVertical: Spacing.sm,
+      paddingHorizontal: Spacing.base,
+      borderRadius: Radius.sm,
+      backgroundColor: colors.bg1,
+      borderWidth: 1,
+      borderColor: colors.border0,
+    },
+    taskChipSelected: {
+      backgroundColor: colors.accent1,
+      borderColor: colors.accent0,
+    },
+    taskChipText: {
+      ...Typography.small,
+      color: colors.text1,
+    },
+    taskChipTextSelected: {
+      color: colors.accent0,
+      fontWeight: '500',
+    },
+    startButton: {
+      marginTop: Spacing.lg,
+    },
+  });
 
   return (
     <View style={styles.container}>
@@ -150,72 +221,3 @@ export function TimerForm({ onStart, tasks, loading = false }: TimerFormProps) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    gap: Spacing.xl,
-  },
-  section: {
-    gap: Spacing.base,
-  },
-  label: {
-    ...Typography.monoSm,
-    color: Colors.text1,
-    textTransform: 'uppercase',
-  },
-  durationChips: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.sm,
-  },
-  chip: {
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.base,
-    borderRadius: Radius.sm,
-    backgroundColor: Colors.bg1,
-    borderWidth: 1,
-    borderColor: Colors.border0,
-  },
-  chipSelected: {
-    backgroundColor: Colors.accent0,
-    borderColor: Colors.accent0,
-  },
-  chipText: {
-    ...Typography.monoSm,
-    color: Colors.text1,
-  },
-  chipTextSelected: {
-    color: Colors.bg0,
-  },
-  customInput: {
-    marginTop: Spacing.sm,
-  },
-  taskList: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.sm,
-  },
-  taskChip: {
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.base,
-    borderRadius: Radius.sm,
-    backgroundColor: Colors.bg1,
-    borderWidth: 1,
-    borderColor: Colors.border0,
-  },
-  taskChipSelected: {
-    backgroundColor: Colors.accent1,
-    borderColor: Colors.accent0,
-  },
-  taskChipText: {
-    ...Typography.small,
-    color: Colors.text1,
-  },
-  taskChipTextSelected: {
-    color: Colors.accent0,
-    fontWeight: '500',
-  },
-  startButton: {
-    marginTop: Spacing.lg,
-  },
-});

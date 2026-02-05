@@ -1,36 +1,47 @@
+import { db, docToEntity, generateId } from "@/database/db";
+import { COLLECTIONS } from "@/database/firebase.config";
 import { User } from "@/types/entities";
-import * as SQLite from "expo-sqlite";
+import {
+    collection,
+    deleteDoc,
+    doc,
+    getDoc,
+    getDocs,
+    query,
+    setDoc,
+    Timestamp,
+    updateDoc,
+    where
+} from "firebase/firestore";
 
 export class UserRepository {
-  private db: SQLite.SQLiteDatabase;
-
-  constructor(db: SQLite.SQLiteDatabase) {
-    this.db = db;
-  }
+  private collectionRef = collection(db, COLLECTIONS.USERS);
 
   /**
    * Register a new user
    */
   async register(name: string, password: string): Promise<User> {
     try {
-      const result = await this.db.runAsync(
-        "INSERT INTO users (name, password) VALUES (?, ?)",
-        [name, password],
-      );
+      // Check if username already exists
+      const q = query(this.collectionRef, where("name", "==", name));
+      const snapshot = await getDocs(q);
 
-      if (result.lastInsertRowId) {
-        const user = await this.findById(result.lastInsertRowId);
-        if (user) {
-          return user;
-        }
-        throw new Error("Failed to retrieve created user");
-      }
-
-      throw new Error("Failed to create user");
-    } catch (error: any) {
-      if (error.message && error.message.includes("UNIQUE constraint")) {
+      if (!snapshot.empty) {
         throw new Error("Username already exists");
       }
+
+      const userId = generateId();
+      const userData = {
+        name,
+        password,
+        created_at: Timestamp.now(),
+      };
+
+      await setDoc(doc(this.collectionRef, userId), userData);
+      
+      return docToEntity<User>({ id: userId }, userData);
+    } catch (error: any) {
+      console.error("User registration error:", error);
       throw error;
     }
   }
@@ -39,84 +50,114 @@ export class UserRepository {
    * Login user
    */
   async login(name: string, password: string): Promise<User> {
-    const result = await this.db.getFirstAsync<{
-      id: number;
-      name: string;
-      password: string;
-      created_at: number;
-    }>("SELECT * FROM users WHERE name = ? AND password = ?", [name, password]);
+    try {
+      const q = query(
+        this.collectionRef, 
+        where("name", "==", name), 
+        where("password", "==", password)
+      );
+      const snapshot = await getDocs(q);
 
-    if (result) {
-      return {
-        id: result.id,
-        name: result.name,
-        created_at: result.created_at,
-      };
+      if (snapshot.empty) {
+        throw new Error("Invalid username or password");
+      }
+
+      const userDoc = snapshot.docs[0];
+      return docToEntity<User>(userDoc, userDoc.data());
+    } catch (error: any) {
+      console.error("User login error:", error);
+      throw error;
     }
-
-    throw new Error("Invalid username or password");
   }
 
   /**
-   * Find user by ID (without password)
+   * Get user by ID
    */
-  async findById(id: number): Promise<User | null> {
-    const result = await this.db.getFirstAsync<{
-      id: number;
-      name: string;
-      created_at: number;
-    }>("SELECT id, name, created_at FROM users WHERE id = ?", [id]);
+  async getById(id: string): Promise<User | null> {
+    try {
+      const docRef = doc(this.collectionRef, id);
+      const docSnap = await getDoc(docRef);
 
-    if (result) {
-      return {
-        id: result.id,
-        name: result.name,
-        created_at: result.created_at,
-      };
+      if (!docSnap.exists()) {
+        return null;
+      }
+
+      return docToEntity<User>(docSnap, docSnap.data());
+    } catch (error: any) {
+      console.error("Get user by ID error:", error);
+      return null;
     }
-
-    return null;
   }
 
   /**
-   * Find user by name (without password)
+   * Get user by username
    */
-  async findByName(name: string): Promise<User | null> {
-    const result = await this.db.getFirstAsync<{
-      id: number;
-      name: string;
-      created_at: number;
-    }>("SELECT id, name, created_at FROM users WHERE name = ?", [name]);
+  async getByName(name: string): Promise<User | null> {
+    try {
+      const q = query(this.collectionRef, where("name", "==", name));
+      const snapshot = await getDocs(q);
 
-    if (result) {
-      return {
-        id: result.id,
-        name: result.name,
-        created_at: result.created_at,
-      };
+      if (snapshot.empty) {
+        return null;
+      }
+
+      const userDoc = snapshot.docs[0];
+      return docToEntity<User>(userDoc, userDoc.data());
+    } catch (error: any) {
+      console.error("Get user by name error:", error);
+      return null;
     }
-
-    return null;
   }
 
   /**
-   * Check if any user exists
+   * Update user profile
    */
-  async exists(): Promise<boolean> {
-    const result = await this.db.getFirstAsync<{ count: number }>(
-      "SELECT COUNT(*) as count FROM users",
-    );
+  async update(id: string, data: Partial<User>): Promise<User> {
+    try {
+      const docRef = doc(this.collectionRef, id);
+      const docSnap = await getDoc(docRef);
 
-    return result ? result.count > 0 : false;
+      if (!docSnap.exists()) {
+        throw new Error("User not found");
+      }
+
+      const updateData: any = {};
+      if (data.name) updateData.name = data.name;
+      if (data.password) updateData.password = data.password;
+
+      await updateDoc(docRef, updateData);
+
+      const updatedDoc = await getDoc(docRef);
+      return docToEntity<User>(updatedDoc, updatedDoc.data());
+    } catch (error: any) {
+      console.error("Update user error:", error);
+      throw error;
+    }
   }
 
   /**
-   * Update user password
+   * Delete user
    */
-  async updatePassword(id: number, newPassword: string): Promise<void> {
-    await this.db.runAsync("UPDATE users SET password = ? WHERE id = ?", [
-      newPassword,
-      id,
-    ]);
+  async delete(id: string): Promise<void> {
+    try {
+      const docRef = doc(this.collectionRef, id);
+      await deleteDoc(docRef);
+    } catch (error: any) {
+      console.error("Delete user error:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get all users (for admin purposes)
+   */
+  async getAll(): Promise<User[]> {
+    try {
+      const snapshot = await getDocs(this.collectionRef);
+      return snapshot.docs.map(doc => docToEntity<User>(doc, doc.data()));
+    } catch (error: any) {
+      console.error("Get all users error:", error);
+      return [];
+    }
   }
 }

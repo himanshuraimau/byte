@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
-import { Colors, Typography, Radius, Shadows, Spacing } from '@/constants/theme';
+import { Radius, Shadows, Spacing, Typography } from '@/constants/theme';
+import { useTheme } from '@/context/ThemeContext';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
@@ -13,6 +14,7 @@ interface AddActionBarProps {
 }
 
 export function AddActionBar({ onAddTask, onAddNote, onAddSession }: AddActionBarProps) {
+  const { colors } = useTheme();
   const taskScale = useSharedValue(1);
   const noteScale = useSharedValue(1);
   const sessionScale = useSharedValue(1);
@@ -37,6 +39,30 @@ export function AddActionBar({ onAddTask, onAddNote, onAddSession }: AddActionBa
     scale.value = withSpring(1, { damping: 15, stiffness: 300 });
   };
 
+  const styles = StyleSheet.create({
+    container: {
+      flexDirection: 'row',
+      backgroundColor: colors.bg0,
+      borderRadius: Radius.lg,
+      padding: Spacing.lg,
+      marginBottom: Spacing.base,
+      gap: Spacing.base,
+      ...Shadows.z2,
+    },
+    action: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: Spacing.xs,
+      paddingVertical: Spacing.sm,
+    },
+    actionText: {
+      ...Typography.monoXs,
+      color: colors.text2,
+      textTransform: 'uppercase',
+    },
+  });
+
   return (
     <View style={styles.container}>
       <AnimatedTouchable
@@ -45,7 +71,7 @@ export function AddActionBar({ onAddTask, onAddNote, onAddSession }: AddActionBa
         onPressIn={() => handlePressIn(taskScale)}
         onPressOut={() => handlePressOut(taskScale)}
         activeOpacity={0.8}>
-        <IconSymbol name="plus" size={20} color={Colors.text2} />
+        <IconSymbol name="plus" size={20} color={colors.text2} />
         <Text style={styles.actionText}>TASK</Text>
       </AnimatedTouchable>
 
@@ -55,7 +81,7 @@ export function AddActionBar({ onAddTask, onAddNote, onAddSession }: AddActionBa
         onPressIn={() => handlePressIn(noteScale)}
         onPressOut={() => handlePressOut(noteScale)}
         activeOpacity={0.8}>
-        <IconSymbol name="doc.text" size={20} color={Colors.text2} />
+        <IconSymbol name="doc.text" size={20} color={colors.text2} />
         <Text style={styles.actionText}>NOTE</Text>
       </AnimatedTouchable>
 
@@ -65,33 +91,9 @@ export function AddActionBar({ onAddTask, onAddNote, onAddSession }: AddActionBa
         onPressIn={() => handlePressIn(sessionScale)}
         onPressOut={() => handlePressOut(sessionScale)}
         activeOpacity={0.8}>
-        <IconSymbol name="clock" size={20} color={Colors.text2} />
+        <IconSymbol name="clock" size={20} color={colors.text2} />
         <Text style={styles.actionText}>SESSION</Text>
       </AnimatedTouchable>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    backgroundColor: Colors.bg0,
-    borderRadius: Radius.lg,
-    padding: Spacing.lg,
-    marginBottom: Spacing.base,
-    gap: Spacing.base,
-    ...Shadows.z2,
-  },
-  action: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.xs,
-    paddingVertical: Spacing.sm,
-  },
-  actionText: {
-    ...Typography.monoXs,
-    color: Colors.text2,
-    textTransform: 'uppercase',
-  },
-});

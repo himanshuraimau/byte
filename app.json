@@ -10,14 +10,14 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.byte.app"
+      "bundleIdentifier": "com.byteapp.app"
     },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#1A1A1A",
         "foregroundImage": "./assets/images/adap-icon.png"
       },
-      "package": "com.byte.app",
+      "package": "com.byteapp.app",
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },

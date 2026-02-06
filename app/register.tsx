@@ -61,45 +61,59 @@ export default function RegisterScreen() {
 
           <View style={styles.inputContainer}>
             <Text style={[styles.label, { color: colors.text1 }]}>
-              USERNAME
+              Username
             </Text>
-            <TextInput
+            <View
               style={[
-                styles.input,
-                { color: colors.text0, borderBottomColor: colors.border0 },
+                styles.inputWrapper,
+                {
+                  backgroundColor: colors.bg1,
+                  borderColor: colors.border1,
+                },
               ]}
-              placeholder="Choose a username"
-              placeholderTextColor={colors.text3}
-              value={name}
-              onChangeText={(text) => {
-                setName(text);
-                setError("");
-              }}
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
+            >
+              <TextInput
+                style={[styles.input, { color: colors.text0 }]}
+                placeholder="Choose a username"
+                placeholderTextColor={colors.text3}
+                value={name}
+                onChangeText={(text) => {
+                  setName(text);
+                  setError("");
+                }}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+            </View>
           </View>
 
           <View style={styles.inputContainer}>
             <Text style={[styles.label, { color: colors.text1 }]}>
-              PASSWORD
+              Password
             </Text>
-            <TextInput
+            <View
               style={[
-                styles.input,
-                { color: colors.text0, borderBottomColor: colors.border0 },
+                styles.inputWrapper,
+                {
+                  backgroundColor: colors.bg1,
+                  borderColor: colors.border1,
+                },
               ]}
-              placeholder="Choose a password"
-              placeholderTextColor={colors.text3}
-              value={password}
-              onChangeText={(text) => {
-                setPassword(text);
-                setError("");
-              }}
-              secureTextEntry
-              onSubmitEditing={handleRegister}
-              returnKeyType="go"
-            />
+            >
+              <TextInput
+                style={[styles.input, { color: colors.text0 }]}
+                placeholder="Choose a password"
+                placeholderTextColor={colors.text3}
+                value={password}
+                onChangeText={(text) => {
+                  setPassword(text);
+                  setError("");
+                }}
+                secureTextEntry
+                onSubmitEditing={handleRegister}
+                returnKeyType="go"
+              />
+            </View>
           </View>
 
           {error ? (
@@ -175,19 +189,19 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
   },
   label: {
-    ...Typography.monoSm,
-    
+    ...Typography.small,
     marginBottom: Spacing.sm,
-    textTransform: "uppercase",
+  },
+  inputWrapper: {
+    borderWidth: 1,
+    borderRadius: Radius.md,
+    paddingHorizontal: Spacing.base,
+    paddingVertical: Spacing.sm,
   },
   input: {
     ...Typography.body,
-    
-    borderBottomWidth: 1,
-    
-    paddingVertical: Spacing.lg,
-    paddingHorizontal: 0,
     fontSize: 16,
+    minHeight: 44,
   },
   error: {
     ...Typography.small,

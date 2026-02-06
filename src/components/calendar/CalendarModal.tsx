@@ -13,6 +13,7 @@ import Animated, {
     withTiming,
 } from "react-native-reanimated";
 import { CalendarGrid } from "./CalendarGrid";
+import { useTheme } from "@/context/ThemeContext";
 
 const AnimatedView = Animated.createAnimatedComponent(View);
 
@@ -29,6 +30,7 @@ export function CalendarModal({
   onDateSelect,
   onClose,
 }: CalendarModalProps) {
+  const { colors } = useTheme();
   const selectedDateObj = parseDateISO(selectedDate);
   const [currentYear, setCurrentYear] = useState(selectedDateObj.getFullYear());
   const [currentMonth, setCurrentMonth] = useState(selectedDateObj.getMonth());
@@ -74,7 +76,13 @@ export function CalendarModal({
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.overlay}>
           <TouchableWithoutFeedback>
-            <AnimatedView style={[styles.modal, modalStyle]}>
+            <AnimatedView
+              style={[
+                styles.modal,
+                { backgroundColor: colors.bg0 },
+                modalStyle,
+              ]}
+            >
               <CalendarGrid
                 year={currentYear}
                 month={currentMonth}

@@ -1,4 +1,4 @@
-import { Spacing, Typography } from "@/constants/theme";
+import { Radius, Spacing, Typography } from "@/constants/theme";
 import { useTheme } from "@/context/ThemeContext";
 import React from "react";
 import {
@@ -22,24 +22,28 @@ export function Textarea({ label, error, style, ...props }: TextareaProps) {
       marginBottom: Spacing.base,
     },
     label: {
-      ...Typography.monoSm,
+      ...Typography.small,
       color: colors.text1,
       marginBottom: Spacing.sm,
-      textTransform: "uppercase",
+      textTransform: "capitalize",
+    },
+    textareaWrapper: {
+      backgroundColor: colors.bg1,
+      borderWidth: 1,
+      borderColor: colors.border1,
+      borderRadius: Radius.md,
+      paddingHorizontal: Spacing.base,
+      paddingVertical: Spacing.sm,
     },
     textarea: {
       ...Typography.body,
       color: colors.text0,
       lineHeight: 24,
-      minHeight: 150,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border0,
-      paddingVertical: Spacing.lg,
-      paddingHorizontal: 0,
+      minHeight: 180,
       fontSize: 16,
     },
     textareaError: {
-      borderBottomColor: colors.destructive,
+      borderColor: colors.destructive,
     },
     error: {
       ...Typography.small,
@@ -51,13 +55,15 @@ export function Textarea({ label, error, style, ...props }: TextareaProps) {
   return (
     <View style={styles.container}>
       {label && <Text style={styles.label}>{label}</Text>}
-      <TextInput
-        style={[styles.textarea, error && styles.textareaError, style]}
-        placeholderTextColor={colors.text3}
-        multiline
-        textAlignVertical="top"
-        {...props}
-      />
+      <View style={[styles.textareaWrapper, error && styles.textareaError]}>
+        <TextInput
+          style={[styles.textarea, style]}
+          placeholderTextColor={colors.text3}
+          multiline
+          textAlignVertical="top"
+          {...props}
+        />
+      </View>
       {error && <Text style={styles.error}>{error}</Text>}
     </View>
   );

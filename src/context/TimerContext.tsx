@@ -1,7 +1,9 @@
-import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, ReactNode, useCallback } from 'react';
 import * as Haptics from 'expo-haptics';
+import { AppState } from 'react-native';
+import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import { Session } from '@/types/entities';
-import { useDate } from './DateContext';
+import { Config } from '@/constants/config';
 
 interface TimerContextType {
   activeSession: Session | null;
@@ -20,44 +22,92 @@ export function TimerProvider({ children }: { children: ReactNode }) {
   const [activeSession, setActiveSession] = useState<Session | null>(null);
   const [remainingSeconds, setRemainingSeconds] = useState(0);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [startTimeMs, setStartTimeMs] = useState<number | null>(null);
+  const [endTimeMs, setEndTimeMs] = useState<number | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const { selectedDate } = useDate();
+  const completionRef = useRef(false);
 
-  useEffect(() => {
-    if (activeSession && remainingSeconds > 0) {
-      intervalRef.current = setInterval(() => {
-        setRemainingSeconds((prev) => {
-          const newValue = prev - 1;
-          if (newValue <= 0) {
-            // Timer completed
-            if (intervalRef.current) {
-              clearInterval(intervalRef.current);
-              intervalRef.current = null;
-            }
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-            return 0;
-          }
-          return newValue;
-        });
-        setElapsedSeconds((prev) => prev + 1);
-      }, 1000);
-    } else {
+  const isRunning = activeSession !== null && remainingSeconds > 0;
+
+  const syncFromClock = useCallback(() => {
+    if (!activeSession || startTimeMs === null || endTimeMs === null) return;
+    const now = Date.now();
+    const totalSeconds = activeSession.duration_minutes * 60;
+    const remaining = Math.max(0, Math.ceil((endTimeMs - now) / 1000));
+    const elapsed = Math.min(
+      totalSeconds,
+      Math.max(0, Math.floor((now - startTimeMs) / 1000)),
+    );
+
+    setRemainingSeconds(remaining);
+    setElapsedSeconds(elapsed);
+
+    if (remaining === 0 && !completionRef.current) {
+      completionRef.current = true;
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
+  }, [activeSession, startTimeMs, endTimeMs]);
+
+  useEffect(() => {
+    if (!isRunning || !activeSession || startTimeMs === null || endTimeMs === null) {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      return;
+    }
+
+    syncFromClock();
+    intervalRef.current = setInterval(syncFromClock, Config.timerUpdateInterval);
 
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
+        intervalRef.current = null;
       }
     };
-  }, [activeSession, remainingSeconds]);
+  }, [isRunning, activeSession, startTimeMs, endTimeMs, syncFromClock]);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        syncFromClock();
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [syncFromClock]);
+
+  useEffect(() => {
+    if (isRunning) {
+      activateKeepAwakeAsync().catch(() => {});
+    } else {
+      deactivateKeepAwake();
+    }
+
+    return () => {
+      if (isRunning) {
+        deactivateKeepAwake();
+      }
+    };
+  }, [isRunning]);
 
   const startTimer = (session: Session) => {
+    const sessionStartMs = session.started_at ? session.started_at * 1000 : Date.now();
+    const totalSeconds = session.duration_minutes * 60;
+    const sessionEndMs = sessionStartMs + totalSeconds * 1000;
+
+    completionRef.current = false;
     setActiveSession(session);
-    setRemainingSeconds(session.duration_minutes * 60);
+    setStartTimeMs(sessionStartMs);
+    setEndTimeMs(sessionEndMs);
+    setRemainingSeconds(totalSeconds);
     setElapsedSeconds(0);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   };
@@ -70,6 +120,9 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     setActiveSession(null);
     setRemainingSeconds(0);
     setElapsedSeconds(0);
+    setStartTimeMs(null);
+    setEndTimeMs(null);
+    completionRef.current = false;
   };
 
   const completeTimer = async () => {
@@ -87,7 +140,7 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     <TimerContext.Provider
       value={{
         activeSession,
-        isRunning: activeSession !== null && remainingSeconds > 0,
+        isRunning,
         remainingSeconds,
         elapsedSeconds,
         startTimer,

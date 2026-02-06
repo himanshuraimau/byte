@@ -1,4 +1,5 @@
 import { useUser } from "@/context/UserContext";
+import { useTheme } from "@/context/ThemeContext";
 import { DayRepository } from "@/database/repositories";
 import { formatDateISO, getTodayISO, parseDateISO } from "@/utils/date";
 import React, { useEffect, useState } from "react";
@@ -37,6 +38,7 @@ export function CalendarGrid({
   onDateSelect,
   onMonthChange,
 }: CalendarGridProps) {
+  const { colors } = useTheme();
   const { user } = useUser();
   const [daysWithEntries, setDaysWithEntries] = useState<Set<string>>(
     new Set(),
@@ -115,23 +117,25 @@ export function CalendarGrid({
           onPress={goToPreviousMonth}
           style={[styles.navButton, styles.navButtonLeft]}
         >
-          <Text style={styles.navText}>‹</Text>
+          <Text style={[styles.navText, { color: colors.text0 }]}>‹</Text>
         </TouchableOpacity>
-        <Text style={styles.monthYear}>
+        <Text style={[styles.monthYear, { color: colors.text0 }]}>
           {MONTH_NAMES[month]} {year}
         </Text>
         <TouchableOpacity
           onPress={goToNextMonth}
           style={[styles.navButton, styles.navButtonRight]}
         >
-          <Text style={styles.navText}>›</Text>
+          <Text style={[styles.navText, { color: colors.text0 }]}>›</Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.dayNames}>
         {DAY_NAMES.map((day, index) => (
           <View key={index} style={styles.dayNameCell}>
-            <Text style={styles.dayName}>{day}</Text>
+            <Text style={[styles.dayName, { color: colors.text2 }]}>
+              {day}
+            </Text>
           </View>
         ))}
       </View>
@@ -191,12 +195,10 @@ const styles = StyleSheet.create({
   navText: {
     fontSize: 18,
     fontWeight: "400",
-    color: "#000000",
   },
   monthYear: {
     fontSize: 16,
     fontWeight: "500",
-    color: "#000000",
     fontFamily: "System",
   },
   dayNames: {
@@ -210,7 +212,6 @@ const styles = StyleSheet.create({
   dayName: {
     fontSize: 12,
     fontWeight: "400",
-    color: "#666666",
     textTransform: "uppercase",
     fontFamily: "System",
     letterSpacing: 0.5,

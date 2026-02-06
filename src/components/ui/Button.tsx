@@ -44,9 +44,10 @@ export function Button({
 
   const styles = StyleSheet.create({
     button: {
-      height: 48,
+      height: 52,
       borderRadius: Radius.md,
       paddingHorizontal: Spacing.xl,
+      paddingVertical: Spacing.sm,
       alignItems: 'center',
       justifyContent: 'center',
     },
@@ -69,6 +70,7 @@ export function Button({
     text: {
       ...Typography.body,
       fontWeight: '500',
+      letterSpacing: 0.2,
     },
     primaryText: {
       color: colors.bg0,

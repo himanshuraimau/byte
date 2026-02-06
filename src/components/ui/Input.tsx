@@ -1,4 +1,4 @@
-import { Spacing, Typography } from "@/constants/theme";
+import { Radius, Spacing, Typography } from "@/constants/theme";
 import { useTheme } from "@/context/ThemeContext";
 import React from "react";
 import {
@@ -22,22 +22,27 @@ export function Input({ label, error, style, ...props }: InputProps) {
       marginBottom: Spacing.base,
     },
     label: {
-      ...Typography.monoSm,
+      ...Typography.small,
       color: colors.text1,
       marginBottom: Spacing.sm,
-      textTransform: "uppercase",
+      textTransform: "capitalize",
+    },
+    inputWrapper: {
+      backgroundColor: colors.bg1,
+      borderWidth: 1,
+      borderColor: colors.border1,
+      borderRadius: Radius.md,
+      paddingHorizontal: Spacing.base,
+      paddingVertical: Spacing.sm,
     },
     input: {
       ...Typography.body,
       color: colors.text0,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border0,
-      paddingVertical: Spacing.lg,
-      paddingHorizontal: 0,
       fontSize: 16,
+      minHeight: 48,
     },
     inputError: {
-      borderBottomColor: colors.destructive,
+      borderColor: colors.destructive,
     },
     error: {
       ...Typography.small,
@@ -49,11 +54,13 @@ export function Input({ label, error, style, ...props }: InputProps) {
   return (
     <View style={styles.container}>
       {label && <Text style={styles.label}>{label}</Text>}
-      <TextInput
-        style={[styles.input, error && styles.inputError, style]}
-        placeholderTextColor={colors.text3}
-        {...props}
-      />
+      <View style={[styles.inputWrapper, error && styles.inputError]}>
+        <TextInput
+          style={[styles.input, style]}
+          placeholderTextColor={colors.text3}
+          {...props}
+        />
+      </View>
       {error && <Text style={styles.error}>{error}</Text>}
     </View>
   );

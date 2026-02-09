@@ -1,7 +1,8 @@
 import { useDate } from "@/context/DateContext";
 import { useTimeline } from "@/context/TimelineContext";
 import { useUser } from "@/context/UserContext";
-import { DayRepository, NoteRepository } from "@/database/repositories";
+import { apiClient } from "@/services/ApiClient";
+import { Note } from "@/types/entities";
 import { useState } from "react";
 
 export function useNote() {
@@ -15,16 +16,17 @@ export function useNote() {
     
     try {
       setLoading(true);
-      const dayRepo = new DayRepository();
-      const noteRepo = new NoteRepository();
       
-      // Get or create day
-      const day = await dayRepo.getOrCreate(user.id, selectedDate);
+      const response = await apiClient.post('/entries', {
+        type: 'NOTE',
+        date: selectedDate,
+        content: content
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create note');
+      }
       
-      // Create note
-      await noteRepo.create(day.id, content);
-      
-      // Refresh timeline
       await refreshTimeline(selectedDate);
     } catch (error) {
       console.error("Failed to create note:", error);
@@ -37,9 +39,14 @@ export function useNote() {
   const updateNote = async (noteId: string, content: string) => {
     try {
       setLoading(true);
-      const noteRepo = new NoteRepository();
-      
-      await noteRepo.update(noteId, content);
+      const response = await apiClient.patch(`/entries/${noteId}`, {
+        content: content
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update note');
+      }
+
       await refreshTimeline(selectedDate);
     } catch (error) {
       console.error("Failed to update note:", error);
@@ -52,9 +59,12 @@ export function useNote() {
   const deleteNote = async (noteId: string) => {
     try {
       setLoading(true);
-      const noteRepo = new NoteRepository();
-      
-      await noteRepo.delete(noteId);
+      const response = await apiClient.delete(`/entries/${noteId}`);
+
+      if (!response.ok) {
+        throw new Error('Failed to delete note');
+      }
+
       await refreshTimeline(selectedDate);
     } catch (error) {
       console.error("Failed to delete note:", error);

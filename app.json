@@ -19,7 +19,8 @@
       },
       "package": "com.byteapp.app",
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "usesCleartextTraffic": true
     },
     "web": {
       "output": "static",
@@ -35,7 +36,8 @@
           "resizeMode": "contain",
           "backgroundColor": "#0F0F0F"
         }
-      ]
+      ],
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true,

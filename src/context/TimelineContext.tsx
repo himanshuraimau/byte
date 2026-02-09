@@ -1,9 +1,3 @@
-import {
-    DayRepository,
-    NoteRepository,
-    SessionRepository,
-    TaskRepository,
-} from "@/database/repositories";
 import { TimelineService } from "@/services/TimelineService";
 import { TimelineEntry } from "@/types/entities";
 import React, {
@@ -42,17 +36,8 @@ export function TimelineProvider({
   const [error, setError] = useState<Error | null>(null);
   const [entriesCount, setEntriesCount] = useState(0);
 
-  // Initialize services
-  const dayRepo = new DayRepository();
-  const taskRepo = new TaskRepository();
-  const noteRepo = new NoteRepository();
-  const sessionRepo = new SessionRepository();
-  const timelineService = new TimelineService(
-    dayRepo,
-    taskRepo,
-    noteRepo,
-    sessionRepo,
-  );
+  // Initialize service
+  const timelineService = new TimelineService();
 
   // Refresh timeline when date changes
   useEffect(() => {
@@ -75,13 +60,10 @@ export function TimelineProvider({
       setLoading(true);
       setError(null);
 
-      const [timelineEntries, count] = await Promise.all([
-        timelineService.getTimelineEntries(date, user.id),
-        timelineService.getEntriesCount(date, user.id),
-      ]);
-
+      const timelineEntries = await timelineService.getTimelineEntries(date, user.id);
+      
       setEntries(timelineEntries);
-      setEntriesCount(count);
+      setEntriesCount(timelineEntries.length);
     } catch (err) {
       setError(err as Error);
       console.error("Failed to refresh timeline:", err);

@@ -1,7 +1,4 @@
-/**
- * Services barrel exports
- */
-
-export { TimelineService } from './TimelineService';
+export { apiClient } from './ApiClient';
+export { TimelineService, timelineService } from './TimelineService';
+export { TaskSetService, taskSetService } from './TaskSetService';
 export { DateService } from './DateService';
-// TimerService will be added in Phase 7

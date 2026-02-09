@@ -1,11 +1,12 @@
 import { StyleSheet, Text, type TextProps } from 'react-native';
 
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { Typography } from '@/constants/theme';
 
 export type ThemedTextProps = TextProps & {
   lightColor?: string;
   darkColor?: string;
-  type?: 'default' | 'title' | 'defaultSemiBold' | 'subtitle' | 'link';
+  type?: 'default' | 'title' | 'defaultSemiBold' | 'subtitle' | 'link' | 'mono';
 };
 
 export function ThemedText({
@@ -20,12 +21,13 @@ export function ThemedText({
   return (
     <Text
       style={[
-        { color },
+        { color, fontFamily: Typography.fontFamily },
         type === 'default' ? styles.default : undefined,
         type === 'title' ? styles.title : undefined,
         type === 'defaultSemiBold' ? styles.defaultSemiBold : undefined,
         type === 'subtitle' ? styles.subtitle : undefined,
         type === 'link' ? styles.link : undefined,
+        type === 'mono' ? styles.mono : undefined,
         style,
       ]}
       {...rest}
@@ -35,26 +37,26 @@ export function ThemedText({
 
 const styles = StyleSheet.create({
   default: {
-    fontSize: 16,
-    lineHeight: 24,
+    ...Typography.body,
   },
   defaultSemiBold: {
-    fontSize: 16,
-    lineHeight: 24,
-    fontWeight: '600',
+    ...Typography.body,
+    fontFamily: Typography.fontFamilyMedium,
   },
   title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    lineHeight: 32,
+    ...Typography.h1,
+    fontFamily: Typography.fontFamilyBold,
   },
   subtitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    ...Typography.h2,
+    fontFamily: Typography.fontFamilyMedium,
   },
   link: {
-    lineHeight: 30,
-    fontSize: 16,
-    color: '#0a7ea4',
+    ...Typography.body,
+    color: '#22c55e',
+    textDecorationLine: 'underline',
   },
+  mono: {
+    ...Typography.monoMd,
+  }
 });

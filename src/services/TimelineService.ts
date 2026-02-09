@@ -1,17 +1,7 @@
-import { DayRepository } from "@/database/repositories/DayRepository";
-import { NoteRepository } from "@/database/repositories/NoteRepository";
-import { SessionRepository } from "@/database/repositories/SessionRepository";
-import { TaskRepository } from "@/database/repositories/TaskRepository";
-import { TimelineEntry } from "@/types/entities";
+import { apiClient } from "./ApiClient";
+import { TimelineEntry, Task, Note, Session } from "@/types/entities";
 
 export class TimelineService {
-  constructor(
-    private dayRepo: DayRepository,
-    private taskRepo: TaskRepository,
-    private noteRepo: NoteRepository,
-    private sessionRepo: SessionRepository,
-  ) {}
-
   /**
    * Get all timeline entries for a specific date, sorted chronologically
    */
@@ -19,49 +9,66 @@ export class TimelineService {
     date: string,
     userId: string,
   ): Promise<TimelineEntry[]> {
-    // Get or create day
-    const day = await this.dayRepo.getOrCreate(userId, date);
+    const response = await apiClient.get(`/entries?date=${date}`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch entries');
+    }
 
-    // Fetch all entries
-    const [tasks, notes, sessions] = await Promise.all([
-      this.taskRepo.getByDayId(day.id),
-      this.noteRepo.getByDayId(day.id),
-      this.sessionRepo.getByDayId(day.id),
-    ]);
+    const data = await response.json();
+    
+    // Map backend Entry to mobile TimelineEntry format
+    return data.map((entry: any): TimelineEntry => {
+      const base = {
+        id: entry._id,
+        created_at: new Date(entry.createdAt).getTime() / 1000,
+        updated_at: new Date(entry.updatedAt).getTime() / 1000,
+      };
 
-    // Combine and sort by creation time
-    const entries: TimelineEntry[] = [
-      ...tasks.map((task) => ({ type: "task" as const, data: task })),
-      ...notes.map((note) => ({ type: "note" as const, data: note })),
-      ...sessions.map((session) => ({
-        type: "session" as const,
-        data: session,
-      })),
-    ];
-
-    // Sort by created_at timestamp
-    entries.sort((a, b) => {
-      const timeA = a.data.created_at;
-      const timeB = b.data.created_at;
-      return timeA - timeB;
+      if (entry.type === 'TASK') {
+        return {
+          type: 'task',
+          data: {
+            ...base,
+            day_id: entry.date,
+            title: entry.content,
+            progress: entry.progress || 0,
+            completed: entry.status === 'COMPLETE',
+          } as Task
+        };
+      } else if (entry.type === 'NOTE') {
+        return {
+          type: 'note',
+          data: {
+            ...base,
+            day_id: entry.date,
+            content: entry.content,
+          } as Note
+        };
+      } else {
+        return {
+          type: 'session',
+          data: {
+            ...base,
+            day_id: entry.date,
+            task_id: entry.linkedTaskId,
+            name: entry.content,
+            duration_minutes: entry.duration || 0,
+            started_at: entry.startedAt ? new Date(entry.startedAt).getTime() / 1000 : 0,
+            ended_at: entry.endedAt ? new Date(entry.endedAt).getTime() / 1000 : null,
+            completed: entry.status === 'COMPLETE',
+          } as Session
+        };
+      }
     });
-
-    return entries;
   }
 
   /**
    * Get entries count for a date
    */
   async getEntriesCount(date: string, userId: string): Promise<number> {
-    const day = await this.dayRepo.getOrCreate(userId, date);
-
-    const [tasks, notes, sessions] = await Promise.all([
-      this.taskRepo.getByDayId(day.id),
-      this.noteRepo.getByDayId(day.id),
-      this.sessionRepo.getByDayId(day.id),
-    ]);
-
-    return tasks.length + notes.length + sessions.length;
+    const entries = await this.getTimelineEntries(date, userId);
+    return entries.length;
   }
 
   /**

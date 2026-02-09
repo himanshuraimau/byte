@@ -4,9 +4,8 @@
 
 export interface User {
   id: string;
-  name: string;
-  password?: string; // Optional when retrieving (never expose password)
-  created_at: number; // Unix timestamp
+  email: string;
+  created_at?: number; // Unix timestamp
 }
 
 export interface Day {

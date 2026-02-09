@@ -74,8 +74,25 @@ export function TaskCard({
     >
       <Card style={task.completed && styles.completed}>
         <View style={styles.header}>
-          <Text style={styles.typeLabel}>[TASK]</Text>
-          <Text style={styles.timestamp}>{timestamp}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
+            <View style={{
+              backgroundColor: colors.accent0,
+              paddingHorizontal: Spacing.sm,
+              paddingVertical: 2,
+            }}>
+              <Text style={{
+                ...Typography.monoXs,
+                color: colors.bg0,
+              }}>TASK</Text>
+            </View>
+            <Text style={styles.timestamp}>{timestamp}</Text>
+            {task.completed && (
+              <Text style={{
+                ...Typography.monoXs,
+                color: colors.accent0,
+              }}>DONE</Text>
+            )}
+          </View>
         </View>
 
         <Text style={[styles.title, task.completed && styles.titleCompleted]}>

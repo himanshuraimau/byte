@@ -53,17 +53,19 @@ export default function TimerScreen() {
     taskId: string | null,
   ) => {
     try {
-      const startedAt = Date.now();
-      const session = await createSession(
+      const startedAtSec = Math.floor(Date.now() / 1000);
+      const session = await createSession({
         name,
-        durationMinutes,
-        startedAt,
-        taskId,
-      );
+        duration_minutes: durationMinutes,
+        started_at: startedAtSec,
+        ended_at: startedAtSec + durationMinutes * 60,
+        task_id: taskId ?? undefined,
+      });
       startTimer(session);
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     } catch (error) {
       console.error("Failed to start timer:", error);
+      showToast("Failed to start timer", "error");
     }
   };
 

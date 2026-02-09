@@ -14,7 +14,7 @@ import {
 } from "react-native";
 
 export default function RegisterScreen() {
-  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const { register } = useUser();
@@ -22,22 +22,22 @@ export default function RegisterScreen() {
   const { colors } = useTheme();
 
   const handleRegister = async () => {
-    if (!name.trim() || !password.trim()) {
-      setError("Please enter both username and password");
+    if (!email.trim() || !password.trim()) {
+      setError("Please enter both email and password");
       return;
     }
 
-    if (password.trim().length < 4) {
-      setError("Password must be at least 4 characters");
+    if (password.trim().length < 6) {
+      setError("Password must be at least 6 characters");
       return;
     }
 
     try {
       setError("");
-      await register(name.trim(), password);
+      await register(email.trim(), password);
       router.replace("/(tabs)");
     } catch (err: any) {
-      setError(err.message || "Username already taken");
+      setError(err.message || "Registration failed");
     }
   };
 
@@ -61,7 +61,7 @@ export default function RegisterScreen() {
 
           <View style={styles.inputContainer}>
             <Text style={[styles.label, { color: colors.text1 }]}>
-              Username
+              Email
             </Text>
             <View
               style={[
@@ -74,15 +74,16 @@ export default function RegisterScreen() {
             >
               <TextInput
                 style={[styles.input, { color: colors.text0 }]}
-                placeholder="Choose a username"
+                placeholder="Enter your email"
                 placeholderTextColor={colors.text3}
-                value={name}
+                value={email}
                 onChangeText={(text) => {
-                  setName(text);
+                  setEmail(text);
                   setError("");
                 }}
                 autoCapitalize="none"
                 autoCorrect={false}
+                keyboardType="email-address"
               />
             </View>
           </View>
@@ -127,10 +128,10 @@ export default function RegisterScreen() {
               style={[
                 styles.button,
                 { backgroundColor: colors.accent0 },
-                (!name.trim() || !password.trim()) && styles.buttonDisabled,
+                (!email.trim() || !password.trim()) && styles.buttonDisabled,
               ]}
               onPress={handleRegister}
-              disabled={!name.trim() || !password.trim()}
+              disabled={!email.trim() || !password.trim()}
             >
               <Text style={[styles.buttonText, { color: colors.bg0 }]}>
                 Create Account

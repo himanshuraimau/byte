@@ -15,9 +15,7 @@ interface NoteCardProps {
 export function NoteCard({ note, onPress, onLongPress }: NoteCardProps) {
   const { colors } = useTheme();
   const timestamp = formatTime(note.created_at);
-  const lines = note.content.split("\n");
-  const firstLine = lines[0];
-  const restLines = lines.slice(1).join("\n");
+  const preview = note.content.length > 150 ? `${note.content.substring(0, 150)}...` : note.content;
 
   const styles = StyleSheet.create({
     header: {
@@ -28,20 +26,18 @@ export function NoteCard({ note, onPress, onLongPress }: NoteCardProps) {
     },
     typeLabel: {
       ...Typography.monoXs,
-      color: colors.text2,
+      color: colors.bg0,
+      backgroundColor: '#3b82f6',
+      paddingHorizontal: Spacing.sm,
+      paddingVertical: 2,
     },
     timestamp: {
-      ...Typography.monoMd,
-      color: colors.text2,
-    },
-    firstLine: {
-      ...Typography.h2,
-      color: colors.text0,
-      marginBottom: Spacing.xs,
+      ...Typography.monoXs,
+      color: colors.text1,
     },
     content: {
       ...Typography.body,
-      color: colors.text1,
+      color: colors.text0,
       lineHeight: Typography.body.lineHeight,
     },
   });
@@ -54,12 +50,12 @@ export function NoteCard({ note, onPress, onLongPress }: NoteCardProps) {
     >
       <Card>
         <View style={styles.header}>
-          <Text style={styles.typeLabel}>[NOTE]</Text>
-          <Text style={styles.timestamp}>{timestamp}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
+            <Text style={styles.typeLabel}>NOTE</Text>
+            <Text style={styles.timestamp}>{timestamp}</Text>
+          </View>
         </View>
-
-        <Text style={styles.firstLine}>{firstLine}</Text>
-        {restLines && <Text style={styles.content}>{restLines}</Text>}
+        <Text style={styles.content}>{preview}</Text>
       </Card>
     </TouchableOpacity>
   );

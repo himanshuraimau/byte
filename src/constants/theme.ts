@@ -3,60 +3,60 @@
  * High-Precision Industrial Minimalism
  */
 
-// Light Mode Colors
+// Light Mode Colors - Matching Web Exactly
 export const LightColors = {
-  // Background
-  bg0: '#FFFFFF', // Cards, main backgrounds
-  bg1: '#F7F7F7', // Subtle fills, secondary backgrounds
-  bg2: '#EEEEEE', // Dividers, borders (rare)
+  // Background (matching web CSS variables)
+  bg0: '#ffffff', // --bg
+  bg1: '#f9f9f9', // --bg-secondary
+  bg2: '#e5e5e5', // border (deprecated, use border0)
 
-  // Text
-  text0: '#111111', // Primary text, headings
-  text1: '#444444', // Secondary text, body content
-  text2: '#888888', // Metadata, timestamps, muted text
-  text3: '#BBBBBB', // Placeholder text, disabled states
+  // Text (matching web CSS variables)
+  text0: '#000000', // --text
+  text1: '#666666', // --text-secondary
+  text2: '#888888', // muted text
+  text3: '#BBBBBB', // placeholder
 
-  // Accent
-  accent0: '#2BB673', // Primary accent (green), progress bars, active states
-  accent1: 'rgba(43, 182, 115, 0.12)', // Subtle accent backgrounds
-  accent2: 'rgba(43, 182, 115, 0.06)', // Very subtle fills
+  // Accent (matching web CSS variables)
+  accent0: '#22c55e', // --accent-green
+  accent1: 'rgba(34, 197, 94, 0.12)', 
+  accent2: 'rgba(34, 197, 94, 0.06)',
 
   // States
-  destructive: '#DC2626', // Delete, cancel, errors
-  warning: '#F59E0B', // Warnings (future use)
-  success: '#2BB673', // Success states (same as accent)
+  destructive: '#ef4444', // Updated to match web
+  warning: '#F59E0B',
+  success: '#22c55e',
 
-  // Borders
-  border0: 'rgba(0, 0, 0, 0.06)', // Subtle borders (rare use)
-  border1: 'rgba(0, 0, 0, 0.12)', // Medium borders
+  // Borders (matching web CSS variables)
+  border0: '#e5e5e5', // --border
+  border1: '#d1d1d1', // --border-strong
 };
 
-// Dark Mode Colors
+// Dark Mode Colors - Matching Web Exactly
 export const DarkColors = {
-  // Background
-  bg0: '#1A1A1A', // Cards, main backgrounds
-  bg1: '#0F0F0F', // Subtle fills, secondary backgrounds
-  bg2: '#2A2A2A', // Dividers, borders (rare)
+  // Background (matching web CSS variables)
+  bg0: '#0a0a0a', // --bg
+  bg1: '#1a1a1a', // --bg-secondary
+  bg2: '#262626', // border (deprecated, use border0)
 
-  // Text
-  text0: '#FFFFFF', // Primary text, headings
-  text1: '#D4D4D4', // Secondary text, body content
-  text2: '#A3A3A3', // Metadata, timestamps, muted text
-  text3: '#666666', // Placeholder text, disabled states
+  // Text (matching web CSS variables)
+  text0: '#ffffff', // --text
+  text1: '#a0a0a0', // --text-secondary
+  text2: '#888888', 
+  text3: '#666666',
 
-  // Accent
-  accent0: '#2BB673', // Primary accent (green), progress bars, active states
-  accent1: 'rgba(43, 182, 115, 0.16)', // Subtle accent backgrounds
-  accent2: 'rgba(43, 182, 115, 0.08)', // Very subtle fills
+  // Accent (matching web CSS variables)
+  accent0: '#22c55e', // --accent-green
+  accent1: 'rgba(34, 197, 94, 0.16)',
+  accent2: 'rgba(34, 197, 94, 0.08)',
 
   // States
-  destructive: '#EF4444', // Delete, cancel, errors
-  warning: '#F59E0B', // Warnings (future use)
-  success: '#2BB673', // Success states (same as accent)
+  destructive: '#ef4444', // Matching web
+  warning: '#F59E0B',
+  success: '#22c55e',
 
-  // Borders
-  border0: 'rgba(255, 255, 255, 0.08)', // Subtle borders (rare use)
-  border1: 'rgba(255, 255, 255, 0.12)', // Medium borders
+  // Borders (matching web CSS variables)
+  border0: '#262626', // --border
+  border1: '#404040', // --border-strong
 };
 
 // Export Colors with light/dark theme support
@@ -69,54 +69,60 @@ export const Colors = {
 // This maintains backward compatibility
 export { LightColors as DefaultColors };
 
-// Typography
+// Typography - Matching Web (Geist Pixel Square / Monospace)
+// Note: Using GeistMono as closest match to Geist Pixel Square
+// For exact match, would need to add Geist Pixel Square font file
 export const Typography = {
-  // Sans-serif (Human Content)
+  fontFamily: 'GeistMono_400Regular', // Closest to Geist Pixel Square
+  fontFamilyBold: 'GeistMono_700Bold',
+  fontFamilyMedium: 'GeistMono_500Medium',
+
+  // Sans-serif (Human Content) - Actually using Mono now for industrial look
   display: {
     fontSize: 40,
-    fontWeight: '500' as const,
+    fontFamily: 'GeistMono_500Medium',
     lineHeight: 48,
   },
   h1: {
     fontSize: 32,
-    fontWeight: '500' as const,
+    fontFamily: 'GeistMono_500Medium',
     lineHeight: 40,
   },
   h2: {
     fontSize: 20,
-    fontWeight: '500' as const,
+    fontFamily: 'GeistMono_500Medium',
     lineHeight: 28,
   },
   body: {
     fontSize: 15,
-    fontWeight: '400' as const,
+    fontFamily: 'GeistMono_400Regular',
     lineHeight: 22.5,
   },
   small: {
     fontSize: 13,
-    fontWeight: '400' as const,
+    fontFamily: 'GeistMono_400Regular',
     lineHeight: 19.5,
   },
 
   // Monospace (System Data)
   monoLg: {
     fontSize: 56,
-    fontWeight: '400' as const,
+    fontFamily: 'GeistMono_400Regular',
     lineHeight: 67.2,
   },
   monoMd: {
     fontSize: 14,
-    fontWeight: '400' as const,
+    fontFamily: 'GeistMono_400Regular',
     lineHeight: 18.2,
   },
   monoSm: {
     fontSize: 12,
-    fontWeight: '400' as const,
+    fontFamily: 'GeistMono_400Regular',
     lineHeight: 15.6,
   },
   monoXs: {
     fontSize: 11,
-    fontWeight: '400' as const,
+    fontFamily: 'GeistMono_400Regular',
     lineHeight: 14.3,
   },
 };

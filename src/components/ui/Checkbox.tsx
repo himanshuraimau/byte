@@ -5,11 +5,12 @@ import { IconSymbol } from './icon-symbol';
 
 interface CheckboxProps {
   checked: boolean;
-  onToggle: () => void;
+  onToggle?: () => void;
+  disabled?: boolean;
   size?: number;
 }
 
-export function Checkbox({ checked, onToggle, size = 20 }: CheckboxProps) {
+export function Checkbox({ checked, onToggle, disabled = false, size = 20 }: CheckboxProps) {
   const { colors } = useTheme();
 
   const styles = StyleSheet.create({
@@ -30,6 +31,7 @@ export function Checkbox({ checked, onToggle, size = 20 }: CheckboxProps) {
     <TouchableOpacity
       style={[styles.checkbox, { width: size, height: size }, checked && styles.checked]}
       onPress={onToggle}
+      disabled={disabled || !onToggle}
       activeOpacity={0.7}>
       {checked && (
         <IconSymbol name="checkmark" size={size * 0.7} color={colors.bg0} />

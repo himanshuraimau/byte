@@ -44,9 +44,9 @@ export function Button({
 
   const styles = StyleSheet.create({
     button: {
-      height: 52,
+      minHeight: 52,
       borderRadius: Radius.md,
-      paddingHorizontal: Spacing.xl,
+      paddingHorizontal: Spacing.base,
       paddingVertical: Spacing.sm,
       alignItems: 'center',
       justifyContent: 'center',
@@ -71,6 +71,7 @@ export function Button({
       ...Typography.body,
       fontWeight: '500',
       letterSpacing: 0.2,
+      textAlign: 'center',
     },
     primaryText: {
       color: colors.bg0,
@@ -112,7 +113,9 @@ export function Button({
       onPressOut={handlePressOut}
       disabled={disabled}
       activeOpacity={0.8}>
-      <Text style={buttonTextStyle}>{title}</Text>
+      <Text style={[buttonTextStyle, { width: '100%' }]}>
+        {title}
+      </Text>
     </AnimatedTouchable>
   );
 }

@@ -1,5 +1,4 @@
 import { CalendarModal } from "@/components/calendar/CalendarModal";
-import { NoteModal } from "@/components/modals/NoteModal";
 import { TaskModal } from "@/components/modals/TaskModal";
 import { AddActionBar } from "@/components/timeline/AddActionBar";
 import { DateHeader } from "@/components/timeline/DateHeader";
@@ -18,7 +17,7 @@ import { useTimeline } from "@/context/TimelineContext";
 import { useNote } from "@/hooks/useNote";
 import { useTask } from "@/hooks/useTask";
 import { useToast } from "@/hooks/useToast";
-import { Note, Task } from "@/types/entities";
+import { Task } from "@/types/entities";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -36,12 +35,10 @@ export default function TimelineScreen() {
     useDate();
   const { entries, loading, entriesCount, refreshTimeline } = useTimeline();
   const { createTask, updateTask, deleteTask, toggleTaskComplete } = useTask();
-  const { createNote, updateNote, deleteNote } = useNote();
+  const { deleteNote } = useNote();
   const { toast, showToast, hideToast } = useToast();
   const [taskModalVisible, setTaskModalVisible] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [noteModalVisible, setNoteModalVisible] = useState(false);
-  const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [calendarModalVisible, setCalendarModalVisible] = useState(false);
   const [actionSheetVisible, setActionSheetVisible] = useState(false);
   const [actionSheetOptions, setActionSheetOptions] = useState<
@@ -54,8 +51,7 @@ export default function TimelineScreen() {
   };
 
   const handleAddNote = () => {
-    setEditingNote(null);
-    setNoteModalVisible(true);
+    router.push(`/notes/new?date=${selectedDate}`);
   };
 
   const handleAddSession = () => {
@@ -138,8 +134,7 @@ export default function TimelineScreen() {
   };
 
   const handleNotePress = (note: Note) => {
-    setEditingNote(note);
-    setNoteModalVisible(true);
+    router.push(`/notes/${note.id}`);
   };
 
   const handleNoteLongPress = (note: Note) => {
@@ -147,8 +142,7 @@ export default function TimelineScreen() {
       {
         label: "Edit",
         onPress: () => {
-          setEditingNote(note);
-          setNoteModalVisible(true);
+          router.push(`/notes/${note.id}`);
         },
       },
       {
@@ -168,32 +162,6 @@ export default function TimelineScreen() {
     setActionSheetVisible(true);
   };
 
-  const handleNoteSave = async (content: string) => {
-    try {
-      if (editingNote) {
-        await updateNote(editingNote.id, content);
-        showToast("Note updated", "success");
-      } else {
-        await createNote(content);
-        showToast("Note created", "success");
-      }
-    } catch (error) {
-      showToast("Failed to save note", "error");
-      throw error;
-    }
-  };
-
-  const handleNoteDelete = async () => {
-    if (editingNote) {
-      try {
-        await deleteNote(editingNote.id);
-        showToast("Note deleted", "info");
-      } catch (error) {
-        showToast("Failed to delete note", "error");
-        throw error;
-      }
-    }
-  };
 
   const handleSessionPress = (sessionId: number) => {
     // TODO: Show session details in Phase 7
@@ -289,17 +257,6 @@ export default function TimelineScreen() {
         }}
         onSave={handleTaskSave}
         onDelete={editingTask ? handleTaskDelete : undefined}
-      />
-
-      <NoteModal
-        visible={noteModalVisible}
-        note={editingNote}
-        onClose={() => {
-          setNoteModalVisible(false);
-          setEditingNote(null);
-        }}
-        onSave={handleNoteSave}
-        onDelete={editingNote ? handleNoteDelete : undefined}
       />
 
       <CalendarModal

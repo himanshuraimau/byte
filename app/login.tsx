@@ -14,7 +14,7 @@ import {
 } from "react-native";
 
 export default function LoginScreen() {
-  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const { login } = useUser();
@@ -22,17 +22,17 @@ export default function LoginScreen() {
   const { colors } = useTheme();
 
   const handleLogin = async () => {
-    if (!name.trim() || !password.trim()) {
-      setError("Please enter both username and password");
+    if (!email.trim() || !password.trim()) {
+      setError("Please enter both email and password");
       return;
     }
 
     try {
       setError("");
-      await login(name.trim(), password);
+      await login(email.trim(), password);
       router.replace("/(tabs)");
     } catch (err: any) {
-      setError(err.message || "Invalid username or password");
+      setError(err.message || "Invalid email or password");
     }
   };
 
@@ -56,7 +56,7 @@ export default function LoginScreen() {
 
           <View style={styles.inputContainer}>
             <Text style={[styles.label, { color: colors.text1 }]}>
-              Username
+              Email
             </Text>
             <View
               style={[
@@ -69,15 +69,16 @@ export default function LoginScreen() {
             >
               <TextInput
                 style={[styles.input, { color: colors.text0 }]}
-                placeholder="Enter your username"
+                placeholder="Enter your email"
                 placeholderTextColor={colors.text3}
-                value={name}
+                value={email}
                 onChangeText={(text) => {
-                  setName(text);
+                  setEmail(text);
                   setError("");
                 }}
                 autoCapitalize="none"
                 autoCorrect={false}
+                keyboardType="email-address"
               />
             </View>
           </View>
@@ -122,10 +123,10 @@ export default function LoginScreen() {
               style={[
                 styles.button,
                 { backgroundColor: colors.accent0 },
-                (!name.trim() || !password.trim()) && styles.buttonDisabled,
+                (!email.trim() || !password.trim()) && styles.buttonDisabled,
               ]}
               onPress={handleLogin}
-              disabled={!name.trim() || !password.trim()}
+              disabled={!email.trim() || !password.trim()}
             >
               <Text style={[styles.buttonText, { color: colors.bg0 }]}>
                 Login

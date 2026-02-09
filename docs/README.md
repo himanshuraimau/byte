@@ -1,75 +1,39 @@
-# Documentation Index
+# Documentation
 
-This directory contains all planning and design documentation for the Daily Timeline App.
+This directory contains documentation for the Byte Mobile App.
 
-## Documents
+## Overview
 
-### 📋 [plan.md](./plan.md)
-**Product Specification Document**
-- Core concept and design philosophy
-- Feature specifications
-- User flows
-- Data model
-- V1 scope definition
+The Byte Mobile App is a React Native application built with Expo that provides productivity tracking features including TaskSet management, Daily Journal, and Sessions tracking. It integrates with the Next.js API backend (`byte-web`) to provide a unified experience across web and mobile platforms.
 
-### 🗓️ [PHASES.md](./PHASES.md)
-**Implementation Phases**
-- 12-phase execution plan
-- Task breakdowns
-- Time estimates
-- Dependencies between phases
-- Success criteria
+## Key Documentation
 
-### 🎨 [DESIGN.md](./DESIGN.md)
-**Design System**
-- Color palette
-- Typography scales
-- Spacing system
-- Shadow tokens
-- Component specifications
-- Animation guidelines
+### Project Structure
+- Components are organized by feature (timeline, tasksets, timer, etc.)
+- Services handle API integration
+- Hooks provide reusable logic
+- Constants define theme and configuration
 
-### 🏗️ [ARCHITECTURE.md](./ARCHITECTURE.md)
-**Technical Architecture**
-- Tech stack details
-- Data flow diagrams
-- Database schema
-- Component architecture
-- State management strategy
-- Performance optimization
+### API Integration
+- Uses Next.js API backend from `byte-web`
+- Authentication handled via JWT tokens
+- All CRUD operations sync with backend
 
-### 📁 [FOLDER_STRUCTURE.md](./FOLDER_STRUCTURE.md)
-**Folder Organization**
-- Complete folder structure
-- File naming conventions
-- Import patterns
-- Barrel exports
-- Gitignore patterns
+### Design System
+- Matches web app theme exactly
+- Uses CSS variable equivalents for colors
+- GeistMono font (closest match to web's Geist Pixel Square)
+- Industrial Minimalist aesthetic
 
-## Quick Start
+### Feature Parity
+- TaskSets: Full CRUD with streak tracking
+- Journal: Dedicated pages (not modals)
+- Timeline: Unified view of all entries
+- Sessions: Timer and session tracking
 
-1. **Read the plan** - Start with `plan.md` to understand the app concept
-2. **Review phases** - Check `PHASES.md` for implementation roadmap
-3. **Study design** - Reference `DESIGN.md` for UI/UX guidelines
-4. **Understand architecture** - Review `ARCHITECTURE.md` for technical decisions
-5. **Follow structure** - Use `FOLDER_STRUCTURE.md` as a guide when adding files
+## Development Notes
 
-## Current Status
-
-**Phase 0: Foundation & Setup** ✅
-- [x] Cleaned up default Expo template
-- [x] Created folder structure
-- [x] Set up design tokens
-- [x] Created type definitions
-- [x] Set up utility functions
-- [x] Created database migration
-
-**Next Steps:**
-- Phase 1: Database & Data Layer
-- Install expo-sqlite
-- Implement repositories
-- Set up database initialization
-
----
-
-**Last Updated:** [Current Date]
+- Always ensure backend (`byte-web`) is running
+- Use shared services for API calls
+- Follow web app patterns for consistency
+- Test on both iOS and Android

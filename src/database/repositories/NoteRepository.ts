@@ -1,38 +1,26 @@
-import { db, docToEntity, generateId } from "@/database/db";
-import { COLLECTIONS } from "@/database/firebase.config";
 import { Note } from "@/types/entities";
-import {
-    collection,
-    deleteDoc,
-    doc,
-    getDoc,
-    getDocs,
-    query,
-    setDoc,
-    Timestamp,
-    updateDoc,
-    where
-} from "firebase/firestore";
+import { entriesAPI } from "@/services/api";
+import { format } from "date-fns";
 
 export class NoteRepository {
-  private collectionRef = collection(db, COLLECTIONS.NOTES);
-
   /**
    * Create a new note
    */
   async create(dayId: string, content: string): Promise<Note> {
     try {
-      const noteId = generateId();
-      const noteData = {
+      const today = format(new Date(), 'yyyy-MM-dd');
+      const response = await entriesAPI.create({
+        type: 'NOTE',
+        date: today,
+        content,
+      });
+      return {
+        id: response._id || response.id,
         day_id: dayId,
         content,
-        created_at: Timestamp.now(),
-        updated_at: Timestamp.now(),
-      };
-
-      await setDoc(doc(this.collectionRef, noteId), noteData);
-      
-      return docToEntity<Note>({ id: noteId }, noteData);
+        created_at: Math.floor(new Date(response.createdAt).getTime() / 1000),
+        updated_at: Math.floor(new Date(response.updatedAt || response.createdAt).getTime() / 1000),
+      } as Note;
     } catch (error: any) {
       console.error("Create note error:", error);
       throw error;
@@ -44,14 +32,15 @@ export class NoteRepository {
    */
   async getById(id: string): Promise<Note | null> {
     try {
-      const docRef = doc(this.collectionRef, id);
-      const docSnap = await getDoc(docRef);
-
-      if (!docSnap.exists()) {
-        return null;
-      }
-
-      return docToEntity<Note>(docSnap, docSnap.data());
+      const response = await entriesAPI.getById(id);
+      if (!response) return null;
+      return {
+        id: response._id || response.id,
+        day_id: response.linkedTaskId || '',
+        content: response.content,
+        created_at: Math.floor(new Date(response.createdAt).getTime() / 1000),
+        updated_at: Math.floor(new Date(response.updatedAt).getTime() / 1000),
+      } as Note;
     } catch (error: any) {
       console.error("Get note by ID error:", error);
       return null;
@@ -63,10 +52,16 @@ export class NoteRepository {
    */
   async getByDayId(dayId: string): Promise<Note[]> {
     try {
-      const q = query(this.collectionRef, where("day_id", "==", dayId));
-      const snapshot = await getDocs(q);
-
-      return snapshot.docs.map(doc => docToEntity<Note>(doc, doc.data()));
+      const today = format(new Date(), 'yyyy-MM-dd');
+      const response = await entriesAPI.list(today, 'NOTE');
+      if (!Array.isArray(response)) return [];
+      return response.map(entry => ({
+        id: entry._id || entry.id,
+        day_id: dayId,
+        content: entry.content,
+        created_at: Math.floor(new Date(entry.createdAt).getTime() / 1000),
+        updated_at: Math.floor(new Date(entry.updatedAt).getTime() / 1000),
+      }));
     } catch (error: any) {
       console.error("Get notes by day ID error:", error);
       return [];
@@ -78,20 +73,14 @@ export class NoteRepository {
    */
   async update(id: string, content: string): Promise<Note> {
     try {
-      const docRef = doc(this.collectionRef, id);
-      const docSnap = await getDoc(docRef);
-
-      if (!docSnap.exists()) {
-        throw new Error("Note not found");
-      }
-
-      await updateDoc(docRef, {
-        content,
-        updated_at: Timestamp.now(),
-      });
-
-      const updatedDoc = await getDoc(docRef);
-      return docToEntity<Note>(updatedDoc, updatedDoc.data());
+      const response = await entriesAPI.update(id, { content });
+      return {
+        id: response._id || response.id,
+        day_id: '',
+        content: response.content,
+        created_at: Math.floor(new Date(response.createdAt).getTime() / 1000),
+        updated_at: Math.floor(new Date(response.updatedAt).getTime() / 1000),
+      } as Note;
     } catch (error: any) {
       console.error("Update note error:", error);
       throw error;
@@ -103,7 +92,7 @@ export class NoteRepository {
    */
   async delete(id: string): Promise<void> {
     try {
-      await deleteDoc(doc(this.collectionRef, id));
+      await entriesAPI.delete(id);
     } catch (error: any) {
       console.error("Delete note error:", error);
       throw error;

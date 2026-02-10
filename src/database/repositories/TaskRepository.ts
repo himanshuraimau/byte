@@ -1,40 +1,30 @@
-import { db, docToEntity, generateId } from "@/database/db";
-import { COLLECTIONS } from "@/database/firebase.config";
 import { Task } from "@/types/entities";
-import {
-    collection,
-    deleteDoc,
-    doc,
-    getDoc,
-    getDocs,
-    query,
-    setDoc,
-    Timestamp,
-    updateDoc,
-    where
-} from "firebase/firestore";
+import { entriesAPI } from "@/services/api";
+import { format } from "date-fns";
 
 export class TaskRepository {
-  private collectionRef = collection(db, COLLECTIONS.TASKS);
-
   /**
    * Create a new task
    */
   async create(dayId: string, title: string): Promise<Task> {
     try {
-      const taskId = generateId();
-      const taskData = {
+      const today = format(new Date(), 'yyyy-MM-dd');
+      const response = await entriesAPI.create({
+        type: 'TASK',
+        date: today,
+        content: title,
+        progress: 0,
+        status: 'pending',
+      });
+      return {
+        id: response._id || response.id,
         day_id: dayId,
         title,
         progress: 0,
         completed: false,
-        created_at: Timestamp.now(),
-        updated_at: Timestamp.now(),
-      };
-
-      await setDoc(doc(this.collectionRef, taskId), taskData);
-      
-      return docToEntity<Task>({ id: taskId }, taskData);
+        created_at: Math.floor(new Date(response.createdAt).getTime() / 1000),
+        updated_at: Math.floor(new Date(response.updatedAt || response.createdAt).getTime() / 1000),
+      } as Task;
     } catch (error: any) {
       console.error("Create task error:", error);
       throw error;
@@ -46,14 +36,17 @@ export class TaskRepository {
    */
   async getById(id: string): Promise<Task | null> {
     try {
-      const docRef = doc(this.collectionRef, id);
-      const docSnap = await getDoc(docRef);
-
-      if (!docSnap.exists()) {
-        return null;
-      }
-
-      return docToEntity<Task>(docSnap, docSnap.data());
+      const response = await entriesAPI.getById(id);
+      if (!response) return null;
+      return {
+        id: response._id || response.id,
+        day_id: '',
+        title: response.content,
+        progress: response.progress || 0,
+        completed: response.status === 'completed',
+        created_at: Math.floor(new Date(response.createdAt).getTime() / 1000),
+        updated_at: Math.floor(new Date(response.updatedAt).getTime() / 1000),
+      } as Task;
     } catch (error: any) {
       console.error("Get task by ID error:", error);
       return null;
@@ -65,10 +58,18 @@ export class TaskRepository {
    */
   async getByDayId(dayId: string): Promise<Task[]> {
     try {
-      const q = query(this.collectionRef, where("day_id", "==", dayId));
-      const snapshot = await getDocs(q);
-
-      return snapshot.docs.map(doc => docToEntity<Task>(doc, doc.data()));
+      const today = format(new Date(), 'yyyy-MM-dd');
+      const response = await entriesAPI.list(today, 'TASK');
+      if (!Array.isArray(response)) return [];
+      return response.map(entry => ({
+        id: entry._id || entry.id,
+        day_id: dayId,
+        title: entry.content,
+        progress: entry.progress || 0,
+        completed: entry.status === 'completed',
+        created_at: Math.floor(new Date(entry.createdAt).getTime() / 1000),
+        updated_at: Math.floor(new Date(entry.updatedAt).getTime() / 1000),
+      }));
     } catch (error: any) {
       console.error("Get tasks by day ID error:", error);
       return [];
@@ -80,22 +81,21 @@ export class TaskRepository {
    */
   async update(id: string, data: Partial<Task>): Promise<Task> {
     try {
-      const docRef = doc(this.collectionRef, id);
-      const docSnap = await getDoc(docRef);
-
-      if (!docSnap.exists()) {
-        throw new Error("Task not found");
-      }
-
-      const updateData: any = { updated_at: Timestamp.now() };
-      if (data.title !== undefined) updateData.title = data.title;
+      const updateData: any = {};
+      if (data.title !== undefined) updateData.content = data.title;
       if (data.progress !== undefined) updateData.progress = data.progress;
-      if (data.completed !== undefined) updateData.completed = data.completed;
+      if (data.completed !== undefined) updateData.status = data.completed ? 'completed' : 'pending';
 
-      await updateDoc(docRef, updateData);
-
-      const updatedDoc = await getDoc(docRef);
-      return docToEntity<Task>(updatedDoc, updatedDoc.data());
+      const response = await entriesAPI.update(id, updateData);
+      return {
+        id: response._id || response.id,
+        day_id: '',
+        title: response.content,
+        progress: response.progress || 0,
+        completed: response.status === 'completed',
+        created_at: Math.floor(new Date(response.createdAt).getTime() / 1000),
+        updated_at: Math.floor(new Date(response.updatedAt).getTime() / 1000),
+      } as Task;
     } catch (error: any) {
       console.error("Update task error:", error);
       throw error;
@@ -107,17 +107,7 @@ export class TaskRepository {
    */
   async delete(id: string): Promise<void> {
     try {
-      // Delete associated sessions
-      const sessionsQuery = query(
-        collection(db, COLLECTIONS.SESSIONS), 
-        where("task_id", "==", id)
-      );
-      const sessionsSnap = await getDocs(sessionsQuery);
-
-      await Promise.all(sessionsSnap.docs.map(d => deleteDoc(d.ref)));
-
-      // Delete the task
-      await deleteDoc(doc(this.collectionRef, id));
+      await entriesAPI.delete(id);
     } catch (error: any) {
       console.error("Delete task error:", error);
       throw error;
@@ -129,24 +119,22 @@ export class TaskRepository {
    */
   async toggleComplete(id: string): Promise<Task> {
     try {
-      const docRef = doc(this.collectionRef, id);
-      const docSnap = await getDoc(docRef);
-
-      if (!docSnap.exists()) {
-        throw new Error("Task not found");
-      }
-
-      const taskData = docSnap.data();
-      const newCompleted = !taskData.completed;
-
-      await updateDoc(docRef, {
-        completed: newCompleted,
-        progress: newCompleted ? 100 : taskData.progress,
-        updated_at: Timestamp.now(),
+      const current = await this.getById(id);
+      if (!current) throw new Error("Task not found");
+      
+      const response = await entriesAPI.update(id, {
+        status: current.completed ? 'pending' : 'completed',
+        progress: current.completed ? current.progress : 100,
       });
-
-      const updatedDoc = await getDoc(docRef);
-      return docToEntity<Task>(updatedDoc, updatedDoc.data());
+      return {
+        id: response._id || response.id,
+        day_id: '',
+        title: response.content,
+        progress: response.progress || 0,
+        completed: response.status === 'completed',
+        created_at: Math.floor(new Date(response.createdAt).getTime() / 1000),
+        updated_at: Math.floor(new Date(response.updatedAt).getTime() / 1000),
+      } as Task;
     } catch (error: any) {
       console.error("Toggle task complete error:", error);
       throw error;
@@ -158,23 +146,20 @@ export class TaskRepository {
    */
   async updateProgress(id: string, progress: number): Promise<Task> {
     try {
-      const docRef = doc(this.collectionRef, id);
-      const docSnap = await getDoc(docRef);
-
-      if (!docSnap.exists()) {
-        throw new Error("Task not found");
-      }
-
       const clampedProgress = Math.max(0, Math.min(100, progress));
-
-      await updateDoc(docRef, {
+      const response = await entriesAPI.update(id, {
         progress: clampedProgress,
-        completed: clampedProgress === 100,
-        updated_at: Timestamp.now(),
+        status: clampedProgress === 100 ? 'completed' : 'pending',
       });
-
-      const updatedDoc = await getDoc(docRef);
-      return docToEntity<Task>(updatedDoc, updatedDoc.data());
+      return {
+        id: response._id || response.id,
+        day_id: '',
+        title: response.content,
+        progress: response.progress || 0,
+        completed: response.status === 'completed',
+        created_at: Math.floor(new Date(response.createdAt).getTime() / 1000),
+        updated_at: Math.floor(new Date(response.updatedAt).getTime() / 1000),
+      } as Task;
     } catch (error: any) {
       console.error("Update task progress error:", error);
       throw error;

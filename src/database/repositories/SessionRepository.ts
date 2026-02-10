@@ -1,22 +1,8 @@
-import { db, docToEntity, generateId, unixToDate } from "@/database/db";
-import { COLLECTIONS } from "@/database/firebase.config";
 import { Session } from "@/types/entities";
-import {
-    collection,
-    deleteDoc,
-    doc,
-    getDoc,
-    getDocs,
-    query,
-    setDoc,
-    Timestamp,
-    updateDoc,
-    where
-} from "firebase/firestore";
+import { entriesAPI } from "@/services/api";
+import { format } from "date-fns";
 
 export class SessionRepository {
-  private collectionRef = collection(db, COLLECTIONS.SESSIONS);
-
   /**
    * Create a new session
    */
@@ -27,23 +13,24 @@ export class SessionRepository {
     taskId?: string
   ): Promise<Session> {
     try {
-      const sessionId = generateId();
-      const sessionData: any = {
+      const today = format(new Date(), 'yyyy-MM-dd');
+      const response = await entriesAPI.create({
+        type: 'SESSION',
+        date: today,
+        content: name,
+        duration: durationMinutes,
+        linkedTaskId: taskId,
+      });
+      return {
+        id: response._id || response.id,
         day_id: dayId,
         name,
         duration_minutes: durationMinutes,
-        started_at: Timestamp.now(),
+        started_at: Math.floor(Date.now() / 1000),
         completed: false,
-        created_at: Timestamp.now(),
-      };
-
-      if (taskId) {
-        sessionData.task_id = taskId;
-      }
-
-      await setDoc(doc(this.collectionRef, sessionId), sessionData);
-      
-      return docToEntity<Session>({ id: sessionId }, sessionData);
+        created_at: Math.floor(new Date(response.createdAt).getTime() / 1000),
+        task_id: taskId,
+      } as Session;
     } catch (error: any) {
       console.error("Create session error:", error);
       throw error;
@@ -55,14 +42,19 @@ export class SessionRepository {
    */
   async getById(id: string): Promise<Session | null> {
     try {
-      const docRef = doc(this.collectionRef, id);
-      const docSnap = await getDoc(docRef);
-
-      if (!docSnap.exists()) {
-        return null;
-      }
-
-      return docToEntity<Session>(docSnap, docSnap.data());
+      const response = await entriesAPI.getById(id);
+      if (!response) return null;
+      return {
+        id: response._id || response.id,
+        day_id: '',
+        name: response.content,
+        duration_minutes: response.duration || 0,
+        started_at: response.startedAt ? Math.floor(new Date(response.startedAt).getTime() / 1000) : 0,
+        ended_at: response.endedAt ? Math.floor(new Date(response.endedAt).getTime() / 1000) : undefined,
+        completed: response.status === 'completed',
+        created_at: Math.floor(new Date(response.createdAt).getTime() / 1000),
+        task_id: response.linkedTaskId,
+      } as Session;
     } catch (error: any) {
       console.error("Get session by ID error:", error);
       return null;
@@ -74,10 +66,20 @@ export class SessionRepository {
    */
   async getByDayId(dayId: string): Promise<Session[]> {
     try {
-      const q = query(this.collectionRef, where("day_id", "==", dayId));
-      const snapshot = await getDocs(q);
-
-      return snapshot.docs.map(doc => docToEntity<Session>(doc, doc.data()));
+      const today = format(new Date(), 'yyyy-MM-dd');
+      const response = await entriesAPI.list(today, 'SESSION');
+      if (!Array.isArray(response)) return [];
+      return response.map(entry => ({
+        id: entry._id || entry.id,
+        day_id: dayId,
+        name: entry.content,
+        duration_minutes: entry.duration || 0,
+        started_at: entry.startedAt ? Math.floor(new Date(entry.startedAt).getTime() / 1000) : 0,
+        ended_at: entry.endedAt ? Math.floor(new Date(entry.endedAt).getTime() / 1000) : undefined,
+        completed: entry.status === 'completed',
+        created_at: Math.floor(new Date(entry.createdAt).getTime() / 1000),
+        task_id: entry.linkedTaskId,
+      }));
     } catch (error: any) {
       console.error("Get sessions by day ID error:", error);
       return [];
@@ -89,10 +91,8 @@ export class SessionRepository {
    */
   async getByTaskId(taskId: string): Promise<Session[]> {
     try {
-      const q = query(this.collectionRef, where("task_id", "==", taskId));
-      const snapshot = await getDocs(q);
-
-      return snapshot.docs.map(doc => docToEntity<Session>(doc, doc.data()));
+      // This would need backend support to query by linkedTaskId
+      return [];
     } catch (error: any) {
       console.error("Get sessions by task ID error:", error);
       return [];
@@ -104,25 +104,24 @@ export class SessionRepository {
    */
   async update(id: string, data: Partial<Session>): Promise<Session> {
     try {
-      const docRef = doc(this.collectionRef, id);
-      const docSnap = await getDoc(docRef);
-
-      if (!docSnap.exists()) {
-        throw new Error("Session not found");
-      }
-
       const updateData: any = {};
-      if (data.name !== undefined) updateData.name = data.name;
-      if (data.duration_minutes !== undefined) updateData.duration_minutes = data.duration_minutes;
-      if (data.completed !== undefined) updateData.completed = data.completed;
-      if (data.ended_at !== undefined) {
-        updateData.ended_at = data.ended_at ? Timestamp.fromDate(unixToDate(data.ended_at)) : null;
-      }
+      if (data.name !== undefined) updateData.content = data.name;
+      if (data.duration_minutes !== undefined) updateData.duration = data.duration_minutes;
+      if (data.completed !== undefined) updateData.status = data.completed ? 'completed' : 'pending';
+      if (data.ended_at !== undefined) updateData.endedAt = data.ended_at ? new Date(data.ended_at * 1000).toISOString() : null;
 
-      await updateDoc(docRef, updateData);
-
-      const updatedDoc = await getDoc(docRef);
-      return docToEntity<Session>(updatedDoc, updatedDoc.data());
+      const response = await entriesAPI.update(id, updateData);
+      return {
+        id: response._id || response.id,
+        day_id: '',
+        name: response.content,
+        duration_minutes: response.duration || 0,
+        started_at: response.startedAt ? Math.floor(new Date(response.startedAt).getTime() / 1000) : 0,
+        ended_at: response.endedAt ? Math.floor(new Date(response.endedAt).getTime() / 1000) : undefined,
+        completed: response.status === 'completed',
+        created_at: Math.floor(new Date(response.createdAt).getTime() / 1000),
+        task_id: response.linkedTaskId,
+      } as Session;
     } catch (error: any) {
       console.error("Update session error:", error);
       throw error;
@@ -134,20 +133,21 @@ export class SessionRepository {
    */
   async complete(id: string): Promise<Session> {
     try {
-      const docRef = doc(this.collectionRef, id);
-      const docSnap = await getDoc(docRef);
-
-      if (!docSnap.exists()) {
-        throw new Error("Session not found");
-      }
-
-      await updateDoc(docRef, {
-        completed: true,
-        ended_at: Timestamp.now(),
+      const response = await entriesAPI.update(id, {
+        status: 'completed',
+        endedAt: new Date().toISOString(),
       });
-
-      const updatedDoc = await getDoc(docRef);
-      return docToEntity<Session>(updatedDoc, updatedDoc.data());
+      return {
+        id: response._id || response.id,
+        day_id: '',
+        name: response.content,
+        duration_minutes: response.duration || 0,
+        started_at: response.startedAt ? Math.floor(new Date(response.startedAt).getTime() / 1000) : 0,
+        ended_at: response.endedAt ? Math.floor(new Date(response.endedAt).getTime() / 1000) : undefined,
+        completed: true,
+        created_at: Math.floor(new Date(response.createdAt).getTime() / 1000),
+        task_id: response.linkedTaskId,
+      } as Session;
     } catch (error: any) {
       console.error("Complete session error:", error);
       throw error;
@@ -159,7 +159,7 @@ export class SessionRepository {
    */
   async delete(id: string): Promise<void> {
     try {
-      await deleteDoc(doc(this.collectionRef, id));
+      await entriesAPI.delete(id);
     } catch (error: any) {
       console.error("Delete session error:", error);
       throw error;
@@ -171,14 +171,8 @@ export class SessionRepository {
    */
   async getActiveSessions(dayId: string): Promise<Session[]> {
     try {
-      const q = query(
-        this.collectionRef,
-        where("day_id", "==", dayId),
-        where("completed", "==", false)
-      );
-      const snapshot = await getDocs(q);
-
-      return snapshot.docs.map(doc => docToEntity<Session>(doc, doc.data()));
+      const sessions = await this.getByDayId(dayId);
+      return sessions.filter(s => !s.completed);
     } catch (error: any) {
       console.error("Get active sessions error:", error);
       return [];

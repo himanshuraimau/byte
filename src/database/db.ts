@@ -1,16 +1,9 @@
-import { db } from "./firebase.config";
-
-// Re-export db for use in repositories
-export { db };
-
 /**
- * Initialize Firestore database
- * Firestore is automatically initialized with the firebase.config
+ * Initialize database
  */
 export async function initDatabase() {
-  // Firestore is already initialized via firebase.config
-  // Just return the db instance
-  return db;
+  // Database initialization would go here
+  return null;
 }
 
 /**
